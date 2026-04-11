@@ -1,25 +1,25 @@
 "use client";
 
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef, useCallback, useState } from "react";
 import { type MapRef } from "@vis.gl/react-maplibre";
 import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { useLayers } from "@/hooks/useLayers";
-import { useLayerData } from "@/hooks/useLayerData";
+import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
-import type { KpiConfig } from "@/types/dashboard";
 
 function useAllLayerData(
   layerIds: string[],
   isVisible: (id: string) => boolean,
+  regionFilter: RegionFilter | null,
 ) {
   const results: Record<string, GeoFeatureCollection | undefined> = {};
 
   for (const id of layerIds) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data } = useLayerData(id, isVisible(id));
+    const { data } = useLayerData(id, isVisible(id), regionFilter);
     results[id] = data;
   }
 
@@ -46,8 +46,10 @@ export default function DashboardPage() {
     setWindSpeed: scenarioSetWindSpeed,
   } = useScenario();
 
+  const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
+
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
-  const layerData = useAllLayerData(layerIds, isVisible);
+  const layerData = useAllLayerData(layerIds, isVisible, regionFilter);
 
   const visibleLayers = useMemo(
     () => allLayers.filter((l) => isVisible(l.id)),
@@ -62,9 +64,25 @@ export default function DashboardPage() {
 
   const mapRef = useRef<MapRef>(null);
 
-  const handleFeatureClick = useCallback((feature: GeoFeature, _layerId: string) => {
+  const handleFeatureClick = useCallback((feature: GeoFeature, layerId: string) => {
     const map = mapRef.current;
     if (!map) return;
+
+    // If clicking an admin boundary, set it as region filter
+    if (layerId.startsWith("admin-")) {
+      const name = feature.properties?.name as string | undefined;
+      const level = layerId === "admin-wojewodztwo"
+        ? "wojewodztwo"
+        : layerId === "admin-powiaty"
+          ? "powiat"
+          : "gmina";
+      if (name) {
+        setRegionFilter((prev) =>
+          prev?.name === name && prev?.level === level ? null : { name, level },
+        );
+        return;
+      }
+    }
 
     const geom = feature.geometry;
     if (geom.type === "Point") {
@@ -73,26 +91,9 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Build KPIs from visible layers that have data
-  const kpis = useMemo<KpiConfig[]>(() => {
-    const items: KpiConfig[] = [];
-    for (const layer of visibleLayers) {
-      const data = layerData[layer.id];
-      if (!data?.features?.length) continue;
-
-      items.push({
-        id: `${layer.id}-count`,
-        label: layer.name,
-        value: data.features.length,
-        color: typeof layer.style.paint["circle-color"] === "string"
-          ? layer.style.paint["circle-color"]
-          : typeof layer.legend?.color === "string"
-            ? layer.legend.color
-            : undefined,
-      });
-    }
-    return items;
-  }, [visibleLayers, layerData]);
+  const handleClearRegion = useCallback(() => {
+    setRegionFilter(null);
+  }, []);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -100,11 +101,11 @@ export default function DashboardPage() {
       <Sidebar
         layerStates={layerStates}
         onToggle={toggleLayer}
-        kpis={kpis}
         lastUpdate={new Date()}
-        visibleLayers={visibleLayers}
         layerData={layerData}
         onFeatureClick={handleFeatureClick}
+        regionFilter={regionFilter}
+        onClearRegion={handleClearRegion}
         scenario={scenarioState}
         onScenarioActivate={scenarioActivate}
         onScenarioDeactivate={scenarioDeactivate}

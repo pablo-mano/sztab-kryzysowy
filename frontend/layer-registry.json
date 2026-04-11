@@ -178,7 +178,7 @@
         "type": "snowflake",
         "view": "CIVIL42.PUBLIC.REPORTS",
         "sql": "SELECT ID, CREATED_AT, LAT, LON, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads', REPLACE(IMAGE_PATH, '@uploads/', ''), 3600) AS image_url, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads_audio', REPLACE(AUDIO_PATH, '@uploads_audio/', ''), 3600) AS audio_url FROM CIVIL42.PUBLIC.REPORTS",
-        "cacheTTL": 60000
+        "cacheTTL": 10000
       },
       "style": {
         "type": "circle",
@@ -205,11 +205,10 @@
         "cacheTTL": 3600000
       },
       "style": {
-        "type": "fill-extrusion",
+        "type": "fill",
         "paint": {
-          "fill-extrusion-color": ["interpolate", ["linear"], ["get", "poi_count"], 0, "#1e3a5f", 5, "#eab308", 15, "#ef4444"],
-          "fill-extrusion-height": ["*", ["get", "poi_count"], 500],
-          "fill-extrusion-opacity": 0.7
+          "fill-color": ["interpolate", ["linear"], ["get", "poi_count"], 0, "#1e3a5f", 5, "#eab308", 15, "#ef4444"],
+          "fill-opacity": 0.6
         }
       },
       "interactive": true,
@@ -260,11 +259,10 @@
         "cacheTTL": 300000
       },
       "style": {
-        "type": "fill-extrusion",
+        "type": "fill",
         "paint": {
-          "fill-extrusion-color": ["interpolate", ["linear"], ["get", "risk_score"], 0, "#22c55e", 50, "#eab308", 200, "#ef4444"],
-          "fill-extrusion-height": ["*", ["get", "risk_score"], 100],
-          "fill-extrusion-opacity": 0.6
+          "fill-color": ["interpolate", ["linear"], ["get", "risk_score"], 0, "#22c55e", 50, "#eab308", 200, "#ef4444"],
+          "fill-opacity": 0.6
         }
       },
       "interactive": true,

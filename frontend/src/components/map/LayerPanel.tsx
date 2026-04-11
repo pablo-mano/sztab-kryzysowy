@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Filter } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import type { LayerConfig, LayerState } from "@/types/layer";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import { getLayersByGroup } from "@/lib/layer-registry";
@@ -12,6 +12,24 @@ interface LayerPanelProps {
   layerData: Record<string, GeoFeatureCollection | undefined>;
   onToggle: (id: string) => void;
   onFeatureClick?: (feature: GeoFeature, layerId: string) => void;
+}
+
+function featureName(f: GeoFeature, idx: number): string {
+  const p = f.properties ?? {};
+  return (
+    (p.name as string) ??
+    (p.station_name as string) ??
+    (p.id as string) ??
+    `#${idx + 1}`
+  );
+}
+
+function matchesSearch(f: GeoFeature, query: string): boolean {
+  const q = query.toLowerCase();
+  const props = f.properties ?? {};
+  return Object.values(props).some(
+    (v) => typeof v === "string" && v.toLowerCase().includes(q),
+  );
 }
 
 function LayerRow({
@@ -30,29 +48,17 @@ function LayerRow({
   onFeatureClick?: (feature: GeoFeature) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [search, setSearch] = useState("");
 
   const legendColor =
     layer.legend?.color ?? layer.style.paint["circle-color"] ?? "#888";
 
-  const toggleFeature = (idx: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  };
+  const filteredFeatures = useMemo(() => {
+    if (!search.trim()) return features.map((f, i) => ({ f, i, match: true }));
+    return features.map((f, i) => ({ f, i, match: matchesSearch(f, search) }));
+  }, [features, search]);
 
-  const featureName = (f: GeoFeature, idx: number): string => {
-    const p = f.properties ?? {};
-    return (
-      (p.name as string) ??
-      (p.station_name as string) ??
-      (p.id as string) ??
-      `#${idx + 1}`
-    );
-  };
+  const matchCount = filteredFeatures.filter((x) => x.match).length;
 
   return (
     <div className="space-y-1">
@@ -65,13 +71,13 @@ function LayerRow({
           <span className="text-sm truncate">{layer.name}</span>
           {state.visible && featureCount > 0 && (
             <span className="text-xs text-muted-foreground tabular-nums">
-              ({featureCount})
+              ({search.trim() ? `${matchCount}/` : ""}{featureCount})
             </span>
           )}
         </div>
         {state.visible && features.length > 0 && (
           <button
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => { setExpanded(!expanded); if (expanded) setSearch(""); }}
             className={`p-1 rounded hover:bg-accent transition-colors ${expanded ? "text-foreground bg-accent" : "text-muted-foreground"}`}
             title="Filtruj obiekty"
           >
@@ -82,26 +88,35 @@ function LayerRow({
       </div>
 
       {expanded && state.visible && features.length > 0 && (
-        <div className="pl-5 max-h-48 overflow-y-auto space-y-0.5">
-          {features.map((f, idx) => {
-            const isSelected = selected.size === 0 || selected.has(idx);
-            return (
+        <div className="pl-5 space-y-1">
+          {/* Search input */}
+          <div className="relative">
+            <Search className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Szukaj..."
+              className="w-full rounded border border-border bg-background pl-6 pr-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+
+          {/* Feature list */}
+          <div className="max-h-48 overflow-y-auto space-y-0.5">
+            {filteredFeatures.map(({ f, i, match }) => (
               <button
-                key={idx}
-                onClick={() => {
-                  toggleFeature(idx);
-                  if (onFeatureClick) onFeatureClick(f);
-                }}
+                key={i}
+                onClick={() => { if (onFeatureClick) onFeatureClick(f); }}
                 className={`w-full text-left text-xs px-2 py-1 rounded truncate transition-colors ${
-                  isSelected
+                  match
                     ? "text-foreground hover:bg-accent"
-                    : "text-muted-foreground/50 hover:bg-accent/50"
+                    : "text-muted-foreground/30"
                 }`}
               >
-                {featureName(f, idx)}
+                {featureName(f, i)}
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
     </div>

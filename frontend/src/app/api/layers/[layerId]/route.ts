@@ -79,8 +79,25 @@ async function loadFallback(layerId: string): Promise<GeoFeatureCollection | nul
   }
 }
 
+/**
+ * Build a spatial filter clause for point-based layers.
+ * Uses ST_WITHIN to filter points inside a selected admin boundary.
+ */
+function buildRegionFilter(
+  region: string,
+  regionLevel: string,
+  tableAlias: string,
+  latCol: string,
+  lonCol: string,
+): { join: string; where: string } {
+  return {
+    join: ` JOIN raw_admin_boundaries __region ON ST_WITHIN(ST_MAKEPOINT(${tableAlias}.${lonCol}, ${tableAlias}.${latCol}), __region.geo)`,
+    where: ` AND __region.name = '${region.replace(/'/g, "''")}' AND __region.level = '${regionLevel.replace(/'/g, "''")}'`,
+  };
+}
+
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ layerId: string }> },
 ) {
   const { layerId } = await params;
@@ -90,23 +107,59 @@ export async function GET(
     return Response.json({ error: `Layer "${layerId}" not found` }, { status: 404 });
   }
 
+  const { searchParams } = request.nextUrl;
+  const region = searchParams.get("region");
+  const regionLevel = searchParams.get("regionLevel");
+  const hasRegionFilter = region && regionLevel;
+
+  // Skip region filter for admin layers themselves and for layers with geoColumn (polygons/H3)
+  const isAdminLayer = layerId.startsWith("admin-");
+  const isPolygonLayer = !!layer.source.geoColumn;
+  const applyRegion = hasRegionFilter && !isAdminLayer && !isPolygonLayer;
+
+  const cacheKey = applyRegion
+    ? `layer:${layerId}:${regionLevel}:${region}`
+    : `layer:${layerId}`;
+
   try {
     const geojson = await cached<GeoFeatureCollection>(
-      `layer:${layerId}`,
+      cacheKey,
       layer.source.cacheTTL,
       async () => {
         let sql: string;
+
         if (layer.source.sql) {
+          // Custom SQL (e.g. civil-reports with GET_PRESIGNED_URL)
           sql = layer.source.sql;
+          if (applyRegion) {
+            // Wrap custom SQL as subquery and apply spatial filter
+            // Detect lat/lon column names from the custom SQL
+            const hasLat = /\bLAT\b/i.test(sql);
+            const latCol = hasLat ? "LAT" : "LATITUDE";
+            const lonCol = hasLat ? "LON" : "LONGITUDE";
+            sql = `SELECT __src.* FROM (${sql}) __src JOIN raw_admin_boundaries __region ON ST_WITHIN(ST_MAKEPOINT(__src.${lonCol}, __src.${latCol}), __region.geo) WHERE __region.name = '${region!.replace(/'/g, "''")}' AND __region.level = '${regionLevel!.replace(/'/g, "''")}'`;
+          }
         } else {
+          const view = layer.source.view;
           const geoSelect = layer.source.geoColumn
             ? `, ST_ASGEOJSON(${layer.source.geoColumn}) AS ${layer.source.geoColumn}`
             : "";
           const where = layer.source.where
             ? ` WHERE ${layer.source.where}`
             : "";
-          sql = `SELECT *${geoSelect} FROM ${layer.source.view}${where}`;
+
+          if (applyRegion) {
+            // Detect lat/lon column names
+            // For raw_osm_pois it's latitude/longitude, for others check
+            const latCol = view.includes("gios") || view.includes("air") ? "LATITUDE" : "LATITUDE";
+            const lonCol = "LONGITUDE";
+            const rf = buildRegionFilter(region!, regionLevel!, "t", latCol, lonCol);
+            sql = `SELECT t.*${geoSelect} FROM ${view} t${rf.join}${where ? where + rf.where : ` WHERE 1=1${rf.where}`}`;
+          } else {
+            sql = `SELECT *${geoSelect} FROM ${view}${where}`;
+          }
         }
+
         const rows = await query(sql);
         return rowsToGeoJSON(
           rows as Record<string, unknown>[],
