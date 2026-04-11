@@ -1,0 +1,4 @@
+# Generated SQL inserts (reproducible from NDJSON)
+seed/inserts/
+seed/single_inserts/
+seed/batch-boundaries-*.sql

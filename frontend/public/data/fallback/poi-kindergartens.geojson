@@ -1,0 +1,17 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5398,51.2534]},"properties":{"name":"Przedszkole nr 16 w Lublinie","amenity_type":"kindergarten","estimated_population":120,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5589,51.2412]},"properties":{"name":"Przedszkole nr 42 w Lublinie","amenity_type":"kindergarten","estimated_population":95,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5267,51.2623]},"properties":{"name":"Przedszkole nr 8 w Lublinie","amenity_type":"kindergarten","estimated_population":110,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5712,51.2345]},"properties":{"name":"Przedszkole nr 30 w Lublinie","amenity_type":"kindergarten","estimated_population":85,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5145,51.2489]},"properties":{"name":"Przedszkole nr 5 w Lublinie","amenity_type":"kindergarten","estimated_population":100,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5834,51.2567]},"properties":{"name":"Przedszkole nr 51 w Lublinie","amenity_type":"kindergarten","estimated_population":75,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9678,51.4134]},"properties":{"name":"Przedszkole nr 1 w Puławach","amenity_type":"kindergarten","estimated_population":90,"city":"Puławy"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9756,51.4067]},"properties":{"name":"Przedszkole nr 5 w Puławach","amenity_type":"kindergarten","estimated_population":80,"city":"Puławy"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.2345,50.9812]},"properties":{"name":"Przedszkole nr 3 w Zamościu","amenity_type":"kindergarten","estimated_population":105,"city":"Zamość"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.2278,50.9756]},"properties":{"name":"Przedszkole nr 7 w Zamościu","amenity_type":"kindergarten","estimated_population":70,"city":"Zamość"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[23.4634,51.1312]},"properties":{"name":"Przedszkole nr 2 w Chełmie","amenity_type":"kindergarten","estimated_population":85,"city":"Chełm"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.0912,51.3812]},"properties":{"name":"Przedszkole w Kraśniku","amenity_type":"kindergarten","estimated_population":65,"city":"Kraśnik"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.9078,50.8189]},"properties":{"name":"Przedszkole nr 1 w Biłgoraju","amenity_type":"kindergarten","estimated_population":70,"city":"Biłgoraj"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.3834,51.5178]},"properties":{"name":"Przedszkole w Lubartowie","amenity_type":"kindergarten","estimated_population":60,"city":"Lubartów"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9512,51.8845]},"properties":{"name":"Przedszkole nr 1 w Łukowie","amenity_type":"kindergarten","estimated_population":75,"city":"Łuków"}}
+]}

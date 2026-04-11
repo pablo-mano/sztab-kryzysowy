@@ -1,0 +1,257 @@
+{
+  "layers": [
+    {
+      "id": "admin-wojewodztwo",
+      "name": "Województwo",
+      "group": "Administracja",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_admin_boundaries",
+        "where": "level = 'wojewodztwo'",
+        "geoColumn": "geo",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "line",
+        "paint": { "line-color": "#4a9eff", "line-width": 2, "line-opacity": 0.8 }
+      },
+      "interactive": false,
+      "defaultVisible": true,
+      "legend": { "type": "simple", "label": "Granica województwa", "color": "#4a9eff" }
+    },
+    {
+      "id": "admin-powiaty",
+      "name": "Powiaty",
+      "group": "Administracja",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_admin_boundaries",
+        "where": "level = 'powiat'",
+        "geoColumn": "geo",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "fill",
+        "paint": { "fill-color": "#1e3a5f", "fill-opacity": 0.15, "fill-outline-color": "#4a9eff" }
+      },
+      "interactive": true,
+      "popupFields": ["name", "population", "area_km2"],
+      "defaultVisible": true,
+      "legend": { "type": "simple", "label": "Powiaty", "color": "#4a9eff" }
+    },
+    {
+      "id": "admin-gminy",
+      "name": "Gminy",
+      "group": "Administracja",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_admin_boundaries",
+        "where": "level = 'gmina'",
+        "geoColumn": "geo",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "fill",
+        "paint": { "fill-color": "#0f2744", "fill-opacity": 0.1, "fill-outline-color": "#2a6cb8" }
+      },
+      "interactive": true,
+      "popupFields": ["name", "teryt", "population"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Gminy", "color": "#2a6cb8" }
+    },
+    {
+      "id": "poi-hospitals",
+      "name": "Szpitale",
+      "group": "Infrastruktura",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_osm_pois",
+        "where": "amenity_type = 'hospital'",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "circle",
+        "paint": { "circle-color": "#ef4444", "circle-radius": 7, "circle-stroke-color": "#fff", "circle-stroke-width": 1 }
+      },
+      "interactive": true,
+      "popupFields": ["name", "estimated_population"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Szpitale", "color": "#ef4444" }
+    },
+    {
+      "id": "poi-schools",
+      "name": "Szkoły",
+      "group": "Infrastruktura",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_osm_pois",
+        "where": "amenity_type = 'school'",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "circle",
+        "paint": { "circle-color": "#3b82f6", "circle-radius": 5, "circle-stroke-color": "#fff", "circle-stroke-width": 1 }
+      },
+      "interactive": true,
+      "popupFields": ["name", "estimated_population"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Szkoły", "color": "#3b82f6" }
+    },
+    {
+      "id": "poi-kindergartens",
+      "name": "Przedszkola",
+      "group": "Infrastruktura",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_osm_pois",
+        "where": "amenity_type = 'kindergarten'",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "circle",
+        "paint": { "circle-color": "#8b5cf6", "circle-radius": 4, "circle-stroke-color": "#fff", "circle-stroke-width": 1 }
+      },
+      "interactive": true,
+      "popupFields": ["name", "estimated_population"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Przedszkola", "color": "#8b5cf6" }
+    },
+    {
+      "id": "poi-care-homes",
+      "name": "Domy opieki (DPS)",
+      "group": "Infrastruktura",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_osm_pois",
+        "where": "amenity_type IN ('nursing_home', 'social_facility')",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "circle",
+        "paint": { "circle-color": "#f59e0b", "circle-radius": 6, "circle-stroke-color": "#fff", "circle-stroke-width": 1 }
+      },
+      "interactive": true,
+      "popupFields": ["name", "estimated_population"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Domy opieki", "color": "#f59e0b" }
+    },
+    {
+      "id": "env-air-quality",
+      "name": "Jakość powietrza (GIOŚ)",
+      "group": "Środowisko",
+      "source": {
+        "type": "snowflake",
+        "view": "v_air_quality_current",
+        "cacheTTL": 300000
+      },
+      "style": {
+        "type": "circle",
+        "paint": {
+          "circle-color": "#22c55e",
+          "circle-radius": 10,
+          "circle-stroke-color": "#fff",
+          "circle-stroke-width": 2
+        }
+      },
+      "interactive": true,
+      "popupFields": ["station_name", "param_code", "value", "aqi_label", "measure_date"],
+      "defaultVisible": true,
+      "chart": {
+        "type": "timeseries",
+        "query": "SELECT measure_date, value FROM raw_gios_measurements WHERE station_id = :id AND param_code = 'PM10' ORDER BY measure_date DESC LIMIT 48",
+        "dataKey": "value",
+        "label": "PM10 (μg/m³)"
+      },
+      "kpi": { "field": "aqi_label", "label": "Jakość powietrza", "colorMap": "aqi" },
+      "legend": {
+        "type": "categorical",
+        "label": "AQI",
+        "stops": ["Dobry", "Umiarkowany", "Niezdrowy", "Zły"],
+        "colors": ["#22c55e", "#eab308", "#f97316", "#ef4444"]
+      }
+    },
+    {
+      "id": "h3-poi-density",
+      "name": "Gęstość infrastruktury (H3)",
+      "group": "Analityka H3",
+      "source": {
+        "type": "snowflake",
+        "view": "v_h3_poi_density",
+        "geoColumn": "hex_boundary",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "fill-extrusion",
+        "paint": {
+          "fill-extrusion-color": ["interpolate", ["linear"], ["get", "poi_count"], 0, "#1e3a5f", 5, "#eab308", 15, "#ef4444"],
+          "fill-extrusion-height": ["*", ["get", "poi_count"], 500],
+          "fill-extrusion-opacity": 0.7
+        }
+      },
+      "interactive": true,
+      "popupFields": ["poi_count", "total_population", "amenity_types"],
+      "defaultVisible": false,
+      "legend": {
+        "type": "gradient",
+        "label": "Gęstość POI",
+        "stops": ["0", "5", "15+"],
+        "colors": ["#1e3a5f", "#eab308", "#ef4444"]
+      }
+    },
+    {
+      "id": "h3-air-quality",
+      "name": "Jakość powietrza — heatmap (H3)",
+      "group": "Analityka H3",
+      "source": {
+        "type": "snowflake",
+        "view": "v_h3_air_quality",
+        "geoColumn": "hex_boundary",
+        "cacheTTL": 300000
+      },
+      "style": {
+        "type": "fill",
+        "paint": {
+          "fill-color": ["interpolate", ["linear"], ["get", "avg_value"], 0, "#22c55e", 50, "#eab308", 100, "#f97316", 150, "#ef4444"],
+          "fill-opacity": 0.5
+        }
+      },
+      "interactive": true,
+      "popupFields": ["avg_value", "param_code"],
+      "defaultVisible": false,
+      "legend": {
+        "type": "gradient",
+        "label": "PM10 (μg/m³)",
+        "stops": ["0", "50", "100", "150+"],
+        "colors": ["#22c55e", "#eab308", "#f97316", "#ef4444"]
+      }
+    },
+    {
+      "id": "h3-risk-score",
+      "name": "Wskaźnik ryzyka (H3)",
+      "group": "Analityka H3",
+      "source": {
+        "type": "snowflake",
+        "view": "v_h3_risk_score",
+        "geoColumn": "hex_boundary",
+        "cacheTTL": 300000
+      },
+      "style": {
+        "type": "fill-extrusion",
+        "paint": {
+          "fill-extrusion-color": ["interpolate", ["linear"], ["get", "risk_score"], 0, "#22c55e", 50, "#eab308", 200, "#ef4444"],
+          "fill-extrusion-height": ["*", ["get", "risk_score"], 100],
+          "fill-extrusion-opacity": 0.6
+        }
+      },
+      "interactive": true,
+      "popupFields": ["total_population", "avg_pm10", "risk_score"],
+      "defaultVisible": false,
+      "legend": {
+        "type": "gradient",
+        "label": "Risk Score",
+        "stops": ["Niski", "Średni", "Wysoki"],
+        "colors": ["#22c55e", "#eab308", "#ef4444"]
+      }
+    }
+  ]
+}

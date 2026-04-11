@@ -1,0 +1,20 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5431,51.2465]},"properties":{"name":"Samodzielny Publiczny Szpital Kliniczny Nr 1","amenity_type":"hospital","estimated_population":850,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5628,51.2527]},"properties":{"name":"Samodzielny Publiczny Szpital Kliniczny Nr 4","amenity_type":"hospital","estimated_population":620,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5275,51.2594]},"properties":{"name":"Szpital Neuropsychiatryczny im. Prof. M. Kaczyńskiego","amenity_type":"hospital","estimated_population":380,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5509,51.2389]},"properties":{"name":"Wojewódzki Szpital Specjalistyczny im. S. Kardynała Wyszyńskiego","amenity_type":"hospital","estimated_population":720,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5713,51.2481]},"properties":{"name":"Szpital MSWiA w Lublinie","amenity_type":"hospital","estimated_population":280,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9694,51.4089]},"properties":{"name":"Samodzielny Publiczny Zakład Opieki Zdrowotnej w Puławach","amenity_type":"hospital","estimated_population":450,"city":"Puławy"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.2372,50.9747]},"properties":{"name":"Samodzielny Publiczny Szpital Wojewódzki im. Papieża Jana Pawła II","amenity_type":"hospital","estimated_population":550,"city":"Zamość"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.2314,50.9812]},"properties":{"name":"Szpital Powiatowy w Zamościu","amenity_type":"hospital","estimated_population":320,"city":"Zamość"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9497,51.8833]},"properties":{"name":"Szpital Powiatowy w Łukowie","amenity_type":"hospital","estimated_population":260,"city":"Łuków"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.9058,50.8181]},"properties":{"name":"SP ZOZ w Biłgoraju","amenity_type":"hospital","estimated_population":310,"city":"Biłgoraj"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[23.2647,50.7481]},"properties":{"name":"Szpital Powiatowy w Tomaszowie Lubelskim","amenity_type":"hospital","estimated_population":210,"city":"Tomaszów Lubelski"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.0906,51.3831]},"properties":{"name":"SPZOZ w Kraśniku","amenity_type":"hospital","estimated_population":290,"city":"Kraśnik"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[23.4667,51.1331]},"properties":{"name":"Szpital Powiatowy w Chełmie","amenity_type":"hospital","estimated_population":380,"city":"Chełm"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.7500,51.6500]},"properties":{"name":"SPZOZ w Radzyniu Podlaskim","amenity_type":"hospital","estimated_population":220,"city":"Radzyń Podlaski"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.8072,51.6636]},"properties":{"name":"Szpital Powiatowy w Rykach","amenity_type":"hospital","estimated_population":180,"city":"Ryki"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.3831,51.5164]},"properties":{"name":"Szpital Powiatowy w Lubartowie","amenity_type":"hospital","estimated_population":240,"city":"Lubartów"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[23.1167,51.3833]},"properties":{"name":"Szpital Powiatowy we Włodawie","amenity_type":"hospital","estimated_population":160,"city":"Włodawa"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5678,51.8833]},"properties":{"name":"Szpital Powiatowy w Parczewie","amenity_type":"hospital","estimated_population":150,"city":"Parczew"}}
+]}

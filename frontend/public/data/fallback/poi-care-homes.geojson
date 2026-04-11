@@ -1,0 +1,12 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5312,51.2589]},"properties":{"name":"Dom Pomocy Społecznej im. W. Michelisowej","amenity_type":"nursing_home","estimated_population":120,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5678,51.2356]},"properties":{"name":"Dom Pomocy Społecznej przy ul. Kosmonautów","amenity_type":"nursing_home","estimated_population":95,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.5145,51.2712]},"properties":{"name":"Dom Pomocy Społecznej w Lublinie","amenity_type":"social_facility","estimated_population":80,"city":"Lublin"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9612,51.4145]},"properties":{"name":"DPS w Puławach","amenity_type":"nursing_home","estimated_population":75,"city":"Puławy"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.2356,50.9867]},"properties":{"name":"DPS w Zamościu","amenity_type":"nursing_home","estimated_population":90,"city":"Zamość"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[23.4589,51.1289]},"properties":{"name":"DPS w Chełmie","amenity_type":"nursing_home","estimated_population":70,"city":"Chełm"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.0878,51.3856]},"properties":{"name":"DPS w Kraśniku","amenity_type":"nursing_home","estimated_population":55,"city":"Kraśnik"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.9034,50.8234]},"properties":{"name":"DPS w Biłgoraju","amenity_type":"nursing_home","estimated_population":60,"city":"Biłgoraj"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9478,51.8889]},"properties":{"name":"DPS w Łukowie","amenity_type":"social_facility","estimated_population":50,"city":"Łuków"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.3812,51.5212]},"properties":{"name":"DPS w Lubartowie","amenity_type":"nursing_home","estimated_population":45,"city":"Lubartów"}}
+]}
