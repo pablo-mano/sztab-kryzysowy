@@ -4,11 +4,12 @@ import { useMemo, useRef, useCallback, useState } from "react";
 import { type MapRef } from "@vis.gl/react-maplibre";
 import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
-import { MapModeToggle } from "@/components/map/MapModeToggle";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
+import { useScenarioImpact } from "@/hooks/useScenarioImpact";
 import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
@@ -16,12 +17,13 @@ function useAllLayerData(
   layerIds: string[],
   isVisible: (id: string) => boolean,
   regionFilter: RegionFilter | null,
+  zoom: number | null,
 ) {
   const results: Record<string, GeoFeatureCollection | undefined> = {};
 
   for (const id of layerIds) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data } = useLayerData(id, isVisible(id), regionFilter);
+    const { data } = useLayerData(id, isVisible(id), regionFilter, zoom);
     results[id] = data;
   }
 
@@ -40,16 +42,22 @@ export default function DashboardPage() {
 
   const {
     state: scenarioState,
-    activate: scenarioActivate,
+    selectScenario,
     deactivate: scenarioDeactivate,
     togglePlay: scenarioTogglePlay,
     setHours: scenarioSetHours,
     setWindDirection: scenarioSetWindDirection,
     setWindSpeed: scenarioSetWindSpeed,
+    setWaterLevel: scenarioSetWaterLevel,
+    setRainfallIntensity: scenarioSetRainfallIntensity,
+    maxHours: scenarioMaxHours,
   } = useScenario();
+
+  const scenarioImpact = useScenarioImpact(scenarioState.zones);
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("h3");
+  const [mapZoom, setMapZoom] = useState<number>(8);
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
 
@@ -63,7 +71,7 @@ export default function DashboardPage() {
     [allLayers, isVisible, mapMode],
   );
 
-  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter);
+  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter, mapZoom);
 
   const visibleLayers = useMemo(
     () => allLayers.filter((l) => isEffectivelyVisible(l.id)),
@@ -109,9 +117,13 @@ export default function DashboardPage() {
     setRegionFilter(null);
   }, []);
 
+  const handleZoomChange = useCallback((zoom: number) => {
+    setMapZoom(zoom);
+  }, []);
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      {/* Sidebar — left */}
+      {/* Sidebar — left (layers) */}
       <Sidebar
         layerStates={layerStates}
         onToggle={toggleLayer}
@@ -121,27 +133,36 @@ export default function DashboardPage() {
         regionFilter={regionFilter}
         onClearRegion={handleClearRegion}
         mapMode={mapMode}
-        scenario={scenarioState}
-        onScenarioActivate={scenarioActivate}
-        onScenarioDeactivate={scenarioDeactivate}
-        onScenarioTogglePlay={scenarioTogglePlay}
-        onScenarioHoursChange={scenarioSetHours}
-        onScenarioWindDirectionChange={scenarioSetWindDirection}
-        onScenarioWindSpeedChange={scenarioSetWindSpeed}
+        onMapModeChange={setMapMode}
       />
 
       {/* Map area */}
       <div className="flex-1 relative">
-        <MapModeToggle mode={mapMode} onChange={setMapMode} />
         <DashboardMap
           visibleLayers={visibleLayers}
           layerData={layerData}
           layerOpacity={layerOpacity}
           scenarioZones={scenarioState.zones}
           mapRef={mapRef}
+          onZoomChange={handleZoomChange}
         />
         <MapLegend layers={visibleLayers} />
       </div>
+
+      {/* Scenario panel — right */}
+      <ScenarioSidebar
+        scenario={scenarioState}
+        scenarioImpact={scenarioImpact}
+        maxHours={scenarioMaxHours}
+        onSelectScenario={selectScenario}
+        onDeactivate={scenarioDeactivate}
+        onTogglePlay={scenarioTogglePlay}
+        onHoursChange={scenarioSetHours}
+        onWindDirectionChange={scenarioSetWindDirection}
+        onWindSpeedChange={scenarioSetWindSpeed}
+        onWaterLevelChange={scenarioSetWaterLevel}
+        onRainfallIntensityChange={scenarioSetRainfallIntensity}
+      />
     </div>
   );
 }

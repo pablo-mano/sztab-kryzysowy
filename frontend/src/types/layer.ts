@@ -5,6 +5,7 @@ export interface LayerSource {
   where?: string;
   geoColumn?: string;
   cacheTTL: number;
+  h3?: boolean;
 }
 
 export interface LayerStyle {

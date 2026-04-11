@@ -16,14 +16,15 @@ import type { LayerConfig } from "@/types/layer";
 import { GeoJsonLayer } from "./GeoJsonLayer";
 import { FeaturePopup } from "./FeaturePopup";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
-import type { ToxicCloudZone } from "@/lib/scenarios/toxic-cloud";
+import type { ScenarioZone } from "@/types/scenario";
 
 interface DashboardMapProps {
   visibleLayers: LayerConfig[];
   layerData: Record<string, GeoFeatureCollection | undefined>;
   layerOpacity: Record<string, number>;
-  scenarioZones?: ToxicCloudZone[];
+  scenarioZones?: ScenarioZone[];
   mapRef?: React.RefObject<MapRef | null>;
+  onZoomChange?: (zoom: number) => void;
 }
 
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/dark";
@@ -34,6 +35,7 @@ export function DashboardMap({
   layerOpacity,
   scenarioZones = [],
   mapRef: externalMapRef,
+  onZoomChange,
 }: DashboardMapProps) {
   const internalMapRef = useRef<MapRef>(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -89,6 +91,13 @@ export function DashboardMap({
     setPopupFeature(null);
   }, []);
 
+  const handleZoomEnd = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (map && onZoomChange) {
+      onZoomChange(Math.round(map.getZoom()));
+    }
+  }, [onZoomChange]);
+
   return (
     <Map
       ref={mapRef}
@@ -109,6 +118,7 @@ export function DashboardMap({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onZoomEnd={handleZoomEnd}
     >
       <NavigationControl position="top-right" />
       <ScaleControl position="bottom-left" />
@@ -127,7 +137,7 @@ export function DashboardMap({
         );
       })}
 
-      {/* Scenario cloud zones */}
+      {/* Scenario zones (toxic cloud / flood) */}
       {scenarioZones.map((zone) => (
         <Source
           key={`scenario-${zone.zone}`}
@@ -139,25 +149,15 @@ export function DashboardMap({
             id={`scenario-fill-${zone.zone}`}
             type="fill"
             paint={{
-              "fill-color":
-                zone.zone === "red"
-                  ? "#ef4444"
-                  : zone.zone === "orange"
-                    ? "#f97316"
-                    : "#eab308",
-              "fill-opacity": zone.zone === "red" ? 0.35 : zone.zone === "orange" ? 0.25 : 0.15,
+              "fill-color": zone.color,
+              "fill-opacity": zone.opacity,
             }}
           />
           <Layer
             id={`scenario-line-${zone.zone}`}
             type="line"
             paint={{
-              "line-color":
-                zone.zone === "red"
-                  ? "#ef4444"
-                  : zone.zone === "orange"
-                    ? "#f97316"
-                    : "#eab308",
+              "line-color": zone.color,
               "line-width": 2,
               "line-dasharray": [2, 2],
               "line-opacity": 0.6,

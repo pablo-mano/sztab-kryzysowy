@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 
 interface TimelineSliderProps {
   hours: number;
+  maxHours?: number;
   playing: boolean;
   onHoursChange: (hours: number) => void;
   onTogglePlay: () => void;
@@ -13,11 +14,17 @@ interface TimelineSliderProps {
 
 export function TimelineSlider({
   hours,
+  maxHours = 8,
   playing,
   onHoursChange,
   onTogglePlay,
   onReset,
 }: TimelineSliderProps) {
+  const step = maxHours <= 8 ? 25 : 100; // finer steps for short timelines
+  const marks = maxHours <= 8
+    ? [0, 2, 4, 6, 8]
+    : [0, 12, 24, 48, 72].filter((h) => h <= maxHours);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -25,7 +32,7 @@ export function TimelineSlider({
           Czas symulacji
         </span>
         <span className="text-sm font-mono tabular-nums">
-          {hours.toFixed(1)}h / 8h
+          {hours.toFixed(maxHours <= 8 ? 1 : 0)}h / {maxHours}h
         </span>
       </div>
 
@@ -41,8 +48,8 @@ export function TimelineSlider({
         <Slider
           value={[hours * 100]}
           min={0}
-          max={800}
-          step={25}
+          max={maxHours * 100}
+          step={step}
           onValueChange={(val) => onHoursChange((Array.isArray(val) ? val[0] : val) / 100)}
           className="flex-1"
         />
@@ -58,7 +65,7 @@ export function TimelineSlider({
 
       {/* Time marks */}
       <div className="flex justify-between text-[10px] text-muted-foreground px-8">
-        {[0, 2, 4, 6, 8].map((h) => (
+        {marks.map((h) => (
           <span key={h}>{h}h</span>
         ))}
       </div>

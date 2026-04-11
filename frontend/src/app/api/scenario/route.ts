@@ -6,6 +6,15 @@ interface ScenarioRequest {
   zone: "red" | "orange" | "yellow";
 }
 
+/** Snowflake returns UPPERCASE column names — normalize to lowercase */
+function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(row)) {
+    out[key.toLowerCase()] = value;
+  }
+  return out;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ScenarioRequest;
@@ -25,22 +34,22 @@ export async function POST(request: NextRequest) {
       ORDER BY estimated_population DESC NULLS LAST
     `;
 
-    const rows = await query(sql, [cloudGeoJson]);
+    const rawRows = await query(sql, [cloudGeoJson]);
+    const rows = rawRows.map((r) => normalizeRow(r as Record<string, unknown>));
 
     // Aggregate stats
     const stats = {
       zone,
       totalObjects: rows.length,
       totalPopulation: rows.reduce(
-        (sum, r) => sum + (Number((r as Record<string, unknown>).estimated_population) || 0),
+        (sum, r) => sum + (Number(r.estimated_population) || 0),
         0,
       ),
       byType: {} as Record<string, number>,
     };
 
     for (const row of rows) {
-      const r = row as Record<string, unknown>;
-      const type = String(r.amenity_type || "other");
+      const type = String(row.amenity_type || "other");
       stats.byType[type] = (stats.byType[type] || 0) + 1;
     }
 

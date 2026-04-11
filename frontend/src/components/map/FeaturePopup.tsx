@@ -11,11 +11,22 @@ interface FeaturePopupProps {
   onClose: () => void;
 }
 
-function formatValue(value: unknown): string {
+function formatValue(value: unknown, field?: string): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "number") return value.toLocaleString("pl-PL");
   if (Array.isArray(value)) return value.join(", ");
-  return String(value);
+  const s = String(value);
+  // Format comma-separated lists (e.g. amenity_types)
+  if (field === "amenity_types" && s.includes(",")) {
+    return s.split(",").map((t) => t.trim()).join(", ");
+  }
+  return s;
+}
+
+function isLongValue(value: unknown, field?: string): boolean {
+  if (field === "amenity_types") return true;
+  const s = String(value ?? "");
+  return s.length > 30;
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -69,7 +80,7 @@ export function FeaturePopup({
       closeOnClick={false}
       className="[&_.maplibregl-popup-content]:!bg-card [&_.maplibregl-popup-content]:!text-card-foreground [&_.maplibregl-popup-content]:!border [&_.maplibregl-popup-content]:!border-border [&_.maplibregl-popup-content]:!rounded-lg [&_.maplibregl-popup-content]:!shadow-xl [&_.maplibregl-popup-content]:!p-3"
     >
-      <div className="space-y-1 min-w-[180px]">
+      <div className="space-y-1.5 min-w-[200px] max-w-[320px]">
         {layer && (
           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
             {layer.name}
@@ -89,17 +100,28 @@ export function FeaturePopup({
                 <img
                   src={value as string}
                   alt="Zdjęcie zgłoszenia"
-                  className="w-full max-w-[260px] rounded border border-border"
+                  className="w-full max-w-[280px] rounded border border-border"
                 />
               </div>
             );
           }
 
+          if (isLongValue(value, field)) {
+            return (
+              <div key={field} className="space-y-0.5 text-sm">
+                <div className="text-muted-foreground text-xs">{formatLabel(field)}</div>
+                <div className="font-medium break-words leading-snug">
+                  {formatValue(value, field)}
+                </div>
+              </div>
+            );
+          }
+
           return (
-            <div key={field} className="flex justify-between gap-4 text-sm">
-              <span className="text-muted-foreground">{formatLabel(field)}</span>
-              <span className="font-medium text-right">
-                {formatValue(value)}
+            <div key={field} className="flex justify-between gap-3 text-sm">
+              <span className="text-muted-foreground shrink-0">{formatLabel(field)}</span>
+              <span className="font-medium text-right truncate">
+                {formatValue(value, field)}
               </span>
             </div>
           );

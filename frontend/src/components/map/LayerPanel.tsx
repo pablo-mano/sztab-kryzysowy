@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, Hexagon, MapPin } from "lucide-react";
 import type { LayerConfig, LayerState } from "@/types/layer";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import { getLayersByGroup, isLayerInMode, type MapMode } from "@/lib/layer-registry";
@@ -13,6 +13,7 @@ interface LayerPanelProps {
   onToggle: (id: string) => void;
   onFeatureClick?: (feature: GeoFeature, layerId: string) => void;
   mapMode: MapMode;
+  onMapModeChange: (mode: MapMode) => void;
 }
 
 function featureName(f: GeoFeature, idx: number): string {
@@ -130,11 +131,38 @@ export function LayerPanel({
   onToggle,
   onFeatureClick,
   mapMode,
+  onMapModeChange,
 }: LayerPanelProps) {
   const groups = getLayersByGroup();
 
   return (
     <div className="space-y-4">
+      {/* Map mode toggle */}
+      <div className="flex rounded-lg border border-border bg-background overflow-hidden">
+        <button
+          onClick={() => onMapModeChange("h3")}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+            mapMode === "h3"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          }`}
+        >
+          <Hexagon className="w-3.5 h-3.5" />
+          Analityka H3
+        </button>
+        <button
+          onClick={() => onMapModeChange("points")}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+            mapMode === "points"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          }`}
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          Punkty
+        </button>
+      </div>
+
       {Object.entries(groups).map(([group, layers]) => {
         const filtered = layers.filter((l) => isLayerInMode(l, mapMode));
         if (filtered.length === 0) return null;

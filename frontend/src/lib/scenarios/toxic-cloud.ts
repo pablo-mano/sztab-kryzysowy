@@ -1,5 +1,6 @@
 import * as turf from "@turf/turf";
 import type { Feature, Polygon } from "geojson";
+import type { ScenarioZone } from "@/types/scenario";
 
 export interface ToxicCloudParams {
   origin: [number, number]; // [lng, lat]
@@ -8,6 +9,7 @@ export interface ToxicCloudParams {
   hours: number; // 0-8
 }
 
+/** @deprecated Use ScenarioZone instead */
 export interface ToxicCloudZone {
   zone: "red" | "orange" | "yellow";
   label: string;
@@ -77,6 +79,23 @@ function createCloudSector(
   const buffered = turf.buffer(sector, radiusKm * 0.15, { units: "kilometers" });
 
   return buffered as Feature<Polygon>;
+}
+
+const TOXIC_ZONE_COLORS: Record<string, { color: string; opacity: number }> = {
+  red: { color: "#ef4444", opacity: 0.35 },
+  orange: { color: "#f97316", opacity: 0.25 },
+  yellow: { color: "#eab308", opacity: 0.15 },
+};
+
+export function toxicCloudToScenarioZones(zones: ToxicCloudZone[]): ScenarioZone[] {
+  return zones.map((z) => ({
+    zone: z.zone,
+    label: z.label,
+    description: z.description,
+    feature: z.feature,
+    color: TOXIC_ZONE_COLORS[z.zone]?.color ?? "#ef4444",
+    opacity: TOXIC_ZONE_COLORS[z.zone]?.opacity ?? 0.25,
+  }));
 }
 
 /**

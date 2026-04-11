@@ -202,7 +202,8 @@
         "type": "snowflake",
         "view": "v_h3_poi_density",
         "geoColumn": "hex_boundary",
-        "cacheTTL": 3600000
+        "cacheTTL": 3600000,
+        "h3": true
       },
       "style": {
         "type": "fill",
@@ -229,7 +230,8 @@
         "type": "snowflake",
         "view": "v_h3_air_quality",
         "geoColumn": "hex_boundary",
-        "cacheTTL": 300000
+        "cacheTTL": 300000,
+        "h3": true
       },
       "style": {
         "type": "fill",
@@ -256,7 +258,8 @@
         "type": "snowflake",
         "view": "v_h3_risk_score",
         "geoColumn": "hex_boundary",
-        "cacheTTL": 300000
+        "cacheTTL": 300000,
+        "h3": true
       },
       "style": {
         "type": "fill",

@@ -6,6 +6,78 @@ import { query } from "@/lib/snowflake";
 import { cached } from "@/lib/cache";
 import type { GeoFeatureCollection } from "@/types/feature";
 
+/** Map zoom level → H3 resolution for dynamic hex sizing */
+function zoomToH3Resolution(zoom: number): number {
+  if (zoom <= 7) return 4;
+  if (zoom <= 9) return 5;
+  if (zoom <= 11) return 6;
+  return 7;
+}
+
+/**
+ * Build dynamic SQL for H3 layers at a given resolution.
+ * At res7 uses existing views; at coarser resolutions aggregates via H3_CELL_TO_PARENT.
+ */
+function buildH3Sql(layerId: string, resolution: number): string {
+  const gridView = `v_h3_grid_r${resolution}`;
+
+  if (layerId === "h3-poi-density") {
+    if (resolution === 7) {
+      return `SELECT h3_index, poi_count, total_population, amenity_types, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_poi_density`;
+    }
+    return `
+      SELECT g.h3_index,
+             COUNT(p.osm_id) AS poi_count,
+             COALESCE(SUM(p.estimated_population), 0) AS total_population,
+             COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+      FROM ${gridView} g
+      LEFT JOIN raw_osm_pois p ON H3_CELL_TO_PARENT(p.h3_res7, ${resolution}) = g.h3_index
+      GROUP BY g.h3_index`;
+  }
+
+  if (layerId === "h3-air-quality") {
+    if (resolution === 7) {
+      return `SELECT h3_index, avg_value, max_value, param_code, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_air_quality`;
+    }
+    return `
+      SELECT g.h3_index,
+             AVG(sub.avg_value) AS avg_value,
+             MAX(sub.max_value) AS max_value,
+             'PM10' AS param_code,
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+      FROM ${gridView} g
+      JOIN v_h3_air_quality sub ON H3_CELL_TO_PARENT(sub.h3_index, ${resolution}) = g.h3_index
+      GROUP BY g.h3_index`;
+  }
+
+  if (layerId === "h3-risk-score") {
+    if (resolution === 7) {
+      return `SELECT h3_index, poi_count, total_population, amenity_types, avg_pm10, risk_score, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_risk_score`;
+    }
+    return `
+      SELECT g.h3_index,
+             COUNT(p.osm_id) AS poi_count,
+             COALESCE(SUM(p.estimated_population), 0) AS total_population,
+             COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
+             COALESCE(aq.avg_value, 0) AS avg_pm10,
+             ROUND(COALESCE(SUM(p.estimated_population), 0) * COALESCE(aq.avg_value, 0) / 100, 2) AS risk_score,
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+      FROM ${gridView} g
+      LEFT JOIN raw_osm_pois p ON H3_CELL_TO_PARENT(p.h3_res7, ${resolution}) = g.h3_index
+      LEFT JOIN (
+        SELECT H3_CELL_TO_PARENT(h3_index, ${resolution}) AS parent_h3,
+               AVG(avg_value) AS avg_value
+        FROM v_h3_air_quality
+        GROUP BY parent_h3
+      ) aq ON g.h3_index = aq.parent_h3
+      GROUP BY g.h3_index, aq.avg_value`;
+  }
+
+  // Fallback — should not reach here
+  return `SELECT * FROM v_h3_poi_density`;
+}
+
 /** Snowflake returns UPPERCASE column names — normalize to lowercase */
 function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -110,16 +182,23 @@ export async function GET(
   const { searchParams } = request.nextUrl;
   const region = searchParams.get("region");
   const regionLevel = searchParams.get("regionLevel");
+  const zoom = searchParams.get("zoom");
   const hasRegionFilter = region && regionLevel;
 
   // Skip region filter for admin layers themselves and for layers with geoColumn (polygons/H3)
   const isAdminLayer = layerId.startsWith("admin-");
+  const isH3Layer = !!layer.source.h3;
   const isPolygonLayer = !!layer.source.geoColumn;
   const applyRegion = hasRegionFilter && !isAdminLayer && !isPolygonLayer;
 
-  const cacheKey = applyRegion
-    ? `layer:${layerId}:${regionLevel}:${region}`
-    : `layer:${layerId}`;
+  // H3 resolution from zoom
+  const h3Resolution = isH3Layer && zoom ? zoomToH3Resolution(Number(zoom)) : null;
+
+  const cacheKey = h3Resolution
+    ? `layer:${layerId}:r${h3Resolution}`
+    : applyRegion
+      ? `layer:${layerId}:${regionLevel}:${region}`
+      : `layer:${layerId}`;
 
   try {
     const geojson = await cached<GeoFeatureCollection>(
@@ -128,7 +207,9 @@ export async function GET(
       async () => {
         let sql: string;
 
-        if (layer.source.sql) {
+        if (isH3Layer && h3Resolution) {
+          sql = buildH3Sql(layerId, h3Resolution);
+        } else if (layer.source.sql) {
           // Custom SQL (e.g. civil-reports with GET_PRESIGNED_URL)
           sql = layer.source.sql;
           if (applyRegion) {
