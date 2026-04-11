@@ -2,8 +2,10 @@ import { NextRequest } from "next/server";
 import { query } from "@/lib/snowflake";
 
 interface ScenarioRequest {
-  cloudGeoJson: string; // GeoJSON polygon of the cloud zone
-  zone: "red" | "orange" | "yellow";
+  cloudGeoJson?: string; // legacy: GeoJSON polygon of the cloud zone
+  zoneGeoJson?: string;  // new: GeoJSON polygon of any scenario zone
+  zone: string;
+  scenarioType?: "toxic-cloud" | "flood";
 }
 
 /** Snowflake returns UPPERCASE column names — normalize to lowercase */
@@ -18,23 +20,45 @@ function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ScenarioRequest;
-    const { cloudGeoJson, zone } = body;
+    const geoJson = body.zoneGeoJson ?? body.cloudGeoJson;
+    const { zone, scenarioType } = body;
 
-    // Query objects within the cloud zone
-    const sql = `
-      SELECT
-        name,
-        amenity_type,
-        latitude,
-        longitude,
-        estimated_population,
-        ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) AS distance_m
-      FROM raw_osm_pois
-      WHERE ST_WITHIN(geo, TO_GEOGRAPHY(:1))
-      ORDER BY estimated_population DESC NULLS LAST
-    `;
+    if (!geoJson) {
+      return Response.json({ error: "Missing zoneGeoJson or cloudGeoJson" }, { status: 400 });
+    }
 
-    const rawRows = await query(sql, [cloudGeoJson]);
+    // Query objects within the scenario zone
+    // For flood scenarios, add evacuation priority scoring for hospitals
+    const sql = scenarioType === "flood"
+      ? `
+        SELECT
+          name,
+          amenity_type,
+          latitude,
+          longitude,
+          estimated_population,
+          ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) AS distance_m,
+          CASE WHEN amenity_type = 'hospital' THEN
+            COALESCE(estimated_population, 0) * 3 - ROUND(ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) / 100)
+          END AS evacuation_priority
+        FROM raw_osm_pois
+        WHERE ST_WITHIN(geo, TO_GEOGRAPHY(:1))
+        ORDER BY evacuation_priority DESC NULLS LAST, estimated_population DESC NULLS LAST
+      `
+      : `
+        SELECT
+          name,
+          amenity_type,
+          latitude,
+          longitude,
+          estimated_population,
+          ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) AS distance_m
+        FROM raw_osm_pois
+        WHERE ST_WITHIN(geo, TO_GEOGRAPHY(:1))
+        ORDER BY estimated_population DESC NULLS LAST
+      `;
+
+    const rawRows = await query(sql, [geoJson]);
     const rows = rawRows.map((r) => normalizeRow(r as Record<string, unknown>));
 
     // Aggregate stats

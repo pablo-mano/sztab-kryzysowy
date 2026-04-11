@@ -53,7 +53,7 @@ export default function DashboardPage() {
     maxHours: scenarioMaxHours,
   } = useScenario();
 
-  const scenarioImpact = useScenarioImpact(scenarioState.zones);
+  const scenarioImpact = useScenarioImpact(scenarioState.zones, scenarioState.scenarioType ?? undefined);
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("h3");

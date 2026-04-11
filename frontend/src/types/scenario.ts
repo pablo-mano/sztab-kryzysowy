@@ -1,4 +1,4 @@
-import type { Feature, Polygon } from "geojson";
+import type { Feature, Polygon, MultiPolygon } from "geojson";
 
 export type ScenarioType = "toxic-cloud" | "flood";
 
@@ -6,7 +6,7 @@ export interface ScenarioZone {
   zone: string;
   label: string;
   description: string;
-  feature: Feature<Polygon>;
+  feature: Feature<Polygon | MultiPolygon>;
   color: string;
   opacity: number;
 }

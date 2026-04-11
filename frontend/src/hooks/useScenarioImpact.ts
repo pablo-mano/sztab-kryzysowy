@@ -11,13 +11,14 @@ export interface ScenarioZoneStats {
 
 export type ScenarioImpact = Record<string, ScenarioZoneStats | undefined>;
 
-async function fetchZoneImpact(zone: ScenarioZone): Promise<ScenarioZoneStats> {
+async function fetchZoneImpact(zone: ScenarioZone, scenarioType?: string): Promise<ScenarioZoneStats> {
   const res = await fetch("/api/scenario", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      cloudGeoJson: JSON.stringify(zone.feature.geometry),
+      zoneGeoJson: JSON.stringify(zone.feature.geometry),
       zone: zone.zone,
+      scenarioType,
     }),
   });
   if (!res.ok) throw new Error(`Scenario API error: ${res.status}`);
@@ -41,7 +42,7 @@ function zonesKey(zones: ScenarioZone[]): string {
  * Fetches impact statistics for each scenario zone.
  * Debounces requests by 500ms to avoid flooding during animation.
  */
-export function useScenarioImpact(zones: ScenarioZone[]): ScenarioImpact {
+export function useScenarioImpact(zones: ScenarioZone[], scenarioType?: string): ScenarioImpact {
   const [impact, setImpact] = useState<ScenarioImpact>({});
   const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const abortRef = useRef<AbortController>(null);
@@ -69,7 +70,7 @@ export function useScenarioImpact(zones: ScenarioZone[]): ScenarioImpact {
       Promise.all(
         zones.map(async (zone) => {
           try {
-            const stats = await fetchZoneImpact(zone);
+            const stats = await fetchZoneImpact(zone, scenarioType);
             return [zone.zone, stats] as const;
           } catch {
             return [zone.zone, undefined] as const;

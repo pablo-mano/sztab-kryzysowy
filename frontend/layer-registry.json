@@ -277,6 +277,81 @@
         "stops": ["Niski", "Średni", "Wysoki"],
         "colors": ["#22c55e", "#eab308", "#ef4444"]
       }
+    },
+    {
+      "id": "hydro-rivers",
+      "name": "Rzeki główne",
+      "group": "Hydrologia",
+      "source": {
+        "type": "snowflake",
+        "view": "raw_rivers",
+        "geoColumn": "geo",
+        "cacheTTL": 3600000
+      },
+      "style": {
+        "type": "line",
+        "paint": { "line-color": "#38bdf8", "line-width": 3, "line-opacity": 0.7 }
+      },
+      "interactive": true,
+      "popupFields": ["name", "length_km"],
+      "defaultVisible": false,
+      "legend": { "type": "simple", "label": "Rzeki", "color": "#38bdf8" }
+    },
+    {
+      "id": "hydro-gauges",
+      "name": "Wodowskazy (IMGW)",
+      "group": "Hydrologia",
+      "source": {
+        "type": "snowflake",
+        "view": "v_water_gauges_current",
+        "cacheTTL": 300000
+      },
+      "style": {
+        "type": "circle",
+        "paint": {
+          "circle-color": ["match", ["get", "status"], "alarmowy", "#ef4444", "ostrzegawczy", "#f59e0b", "normalny", "#3b82f6", "#22c55e"],
+          "circle-radius": 8,
+          "circle-stroke-color": "#fff",
+          "circle-stroke-width": 2
+        }
+      },
+      "interactive": true,
+      "popupFields": ["station_name", "river_name", "water_level_cm", "alarm_level_cm", "warning_level_cm", "status"],
+      "defaultVisible": false,
+      "legend": {
+        "type": "categorical",
+        "label": "Stan wody",
+        "stops": ["Niski", "Normalny", "Ostrzegawczy", "Alarmowy"],
+        "colors": ["#22c55e", "#3b82f6", "#f59e0b", "#ef4444"]
+      }
+    },
+    {
+      "id": "h3-flood-risk",
+      "name": "Ryzyko powodziowe (H3)",
+      "group": "Analityka H3",
+      "source": {
+        "type": "snowflake",
+        "view": "v_h3_flood_risk",
+        "geoColumn": "hex_boundary",
+        "cacheTTL": 3600000,
+        "h3": true
+      },
+      "style": {
+        "type": "fill",
+        "paint": {
+          "fill-color": ["interpolate", ["linear"], ["get", "flood_risk"], 0, "#1e3a5f", 50, "#0891b2", 100, "#ef4444"],
+          "fill-opacity": 0.5
+        }
+      },
+      "interactive": true,
+      "popupFields": ["flood_risk", "distance_to_river_km", "poi_count", "total_population"],
+      "defaultVisible": false,
+      "legend": {
+        "type": "gradient",
+        "label": "Ryzyko powodziowe",
+        "stops": ["Niskie", "Średnie", "Wysokie"],
+        "colors": ["#1e3a5f", "#0891b2", "#ef4444"]
+      }
     }
   ]
 }
