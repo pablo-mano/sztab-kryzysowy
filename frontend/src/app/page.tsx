@@ -57,6 +57,12 @@ export default function DashboardPage() {
     setHours: scenarioSetHours,
     setWindDirection: scenarioSetWindDirection,
     setWindSpeed: scenarioSetWindSpeed,
+    setSubstanceId: scenarioSetSubstance,
+    setReleaseScenario: scenarioSetRelease,
+    setStabilityClass: scenarioSetStability,
+    resetStabilityAuto: scenarioResetStability,
+    setTimeOfDay: scenarioSetTimeOfDay,
+    setCloudCover: scenarioSetCloudCover,
     setFloodScenarioId: scenarioSetFloodScenario,
     maxHours: scenarioMaxHours,
   } = useScenario();
@@ -172,6 +178,12 @@ export default function DashboardPage() {
         onHoursChange={scenarioSetHours}
         onWindDirectionChange={scenarioSetWindDirection}
         onWindSpeedChange={scenarioSetWindSpeed}
+        onSubstanceChange={scenarioSetSubstance}
+        onReleaseChange={scenarioSetRelease}
+        onStabilityChange={scenarioSetStability}
+        onStabilityReset={scenarioResetStability}
+        onTimeOfDayChange={scenarioSetTimeOfDay}
+        onCloudCoverChange={scenarioSetCloudCover}
         onFloodScenarioChange={scenarioSetFloodScenario}
         floodFilterActive={floodFilterActive}
         onFloodFilterToggle={setFloodFilterActive}

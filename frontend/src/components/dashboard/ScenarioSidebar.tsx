@@ -6,8 +6,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ScenarioPanel } from "@/components/scenario/ScenarioPanel";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
-import type { ScenarioType } from "@/types/scenario";
+import type { ScenarioType, SubstanceId, ReleaseScenarioId, StabilityClass } from "@/types/scenario";
 import type { FloodScenarioId } from "@/lib/scenarios/flood";
+import type { TimeOfDay, CloudCover } from "@/lib/scenarios/toxic-cloud";
 
 interface ScenarioSidebarProps {
   scenario: ScenarioState;
@@ -19,6 +20,12 @@ interface ScenarioSidebarProps {
   onHoursChange: (hours: number) => void;
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
+  onSubstanceChange: (id: SubstanceId) => void;
+  onReleaseChange: (id: ReleaseScenarioId) => void;
+  onStabilityChange: (cls: StabilityClass) => void;
+  onStabilityReset: () => void;
+  onTimeOfDayChange: (t: TimeOfDay) => void;
+  onCloudCoverChange: (c: CloudCover) => void;
   onFloodScenarioChange: (id: FloodScenarioId) => void;
   floodFilterActive: boolean;
   onFloodFilterToggle: (active: boolean) => void;
@@ -34,6 +41,12 @@ export function ScenarioSidebar({
   onHoursChange,
   onWindDirectionChange,
   onWindSpeedChange,
+  onSubstanceChange,
+  onReleaseChange,
+  onStabilityChange,
+  onStabilityReset,
+  onTimeOfDayChange,
+  onCloudCoverChange,
   onFloodScenarioChange,
   floodFilterActive,
   onFloodFilterToggle,
@@ -84,6 +97,12 @@ export function ScenarioSidebar({
             onHoursChange={onHoursChange}
             onWindDirectionChange={onWindDirectionChange}
             onWindSpeedChange={onWindSpeedChange}
+            onSubstanceChange={onSubstanceChange}
+            onReleaseChange={onReleaseChange}
+            onStabilityChange={onStabilityChange}
+            onStabilityReset={onStabilityReset}
+            onTimeOfDayChange={onTimeOfDayChange}
+            onCloudCoverChange={onCloudCoverChange}
             onFloodScenarioChange={onFloodScenarioChange}
             floodFilterActive={floodFilterActive}
             onFloodFilterToggle={onFloodFilterToggle}

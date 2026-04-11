@@ -1,15 +1,15 @@
 "use client";
 
 import { Play, ArrowLeft, Flame, Droplets } from "lucide-react";
-import { TimelineSlider } from "./TimelineSlider";
 import { ThreatList } from "./ThreatList";
 import { FloodControls } from "./FloodControls";
-import { WindIndicator } from "@/components/charts/WindIndicator";
-import { Slider } from "@/components/ui/slider";
+import { ToxicControls } from "./ToxicControls";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
 import type { ScenarioType } from "@/types/scenario";
+import type { SubstanceId, ReleaseScenarioId, StabilityClass } from "@/types/scenario";
 import type { FloodScenarioId } from "@/lib/scenarios/flood";
+import type { TimeOfDay, CloudCover } from "@/lib/scenarios/toxic-cloud";
 
 interface ScenarioPanelProps {
   state: ScenarioState;
@@ -21,6 +21,12 @@ interface ScenarioPanelProps {
   onHoursChange: (hours: number) => void;
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
+  onSubstanceChange: (id: SubstanceId) => void;
+  onReleaseChange: (id: ReleaseScenarioId) => void;
+  onStabilityChange: (cls: StabilityClass) => void;
+  onStabilityReset: () => void;
+  onTimeOfDayChange: (t: TimeOfDay) => void;
+  onCloudCoverChange: (c: CloudCover) => void;
   onFloodScenarioChange: (id: FloodScenarioId) => void;
   floodFilterActive: boolean;
   onFloodFilterToggle: (active: boolean) => void;
@@ -29,13 +35,16 @@ interface ScenarioPanelProps {
 export function ScenarioPanel({
   state,
   impact,
-  maxHours,
   onSelectScenario,
   onDeactivate,
-  onTogglePlay,
-  onHoursChange,
   onWindDirectionChange,
   onWindSpeedChange,
+  onSubstanceChange,
+  onReleaseChange,
+  onStabilityChange,
+  onStabilityReset,
+  onTimeOfDayChange,
+  onCloudCoverChange,
   onFloodScenarioChange,
   floodFilterActive,
   onFloodFilterToggle,
@@ -54,8 +63,8 @@ export function ScenarioPanel({
             <span className="font-medium">Pożar przemysłowy — Puławy</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Symulacja wycieku substancji toksycznych z Zakładów Azotowych Puławy.
-            Modelowanie rozprzestrzeniania chmury w oparciu o parametry wiatru.
+            Model Gaussowski dyspersji chmury toksycznej z Zakładów Azotowych Puławy.
+            4 substancje, klasy stabilności Pasquilla-Gifforda, progi ERPG.
           </p>
           <button
             onClick={() => onSelectScenario("toxic-cloud")}
@@ -96,7 +105,7 @@ export function ScenarioPanel({
       <div className="flex items-center justify-between">
         <h3 className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 ${isToxic ? "text-red-400" : "text-blue-400"}`}>
           {isToxic ? <Flame className="w-3.5 h-3.5" /> : <Droplets className="w-3.5 h-3.5" />}
-          {isToxic ? "Pożar przemysłowy" : "Powódź — strefy ISOK"}
+          {isToxic ? "Chmura toksyczna — Puławy" : "Powódź — strefy ISOK"}
         </h3>
         <button
           onClick={onDeactivate}
@@ -107,50 +116,27 @@ export function ScenarioPanel({
         </button>
       </div>
 
-      {/* Toxic cloud: timeline + wind controls */}
+      {/* Toxic cloud: Gaussian model controls */}
       {isToxic && (
-        <>
-          <TimelineSlider
-            hours={state.hours}
-            maxHours={maxHours}
-            playing={state.playing}
-            onHoursChange={onHoursChange}
-            onTogglePlay={onTogglePlay}
-            onReset={() => onHoursChange(0)}
-          />
-          <WindIndicator
-            direction={state.windDirection}
-            speed={state.windSpeed}
-          />
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Kierunek wiatru</span>
-                <span>{state.windDirection}°</span>
-              </div>
-              <Slider
-                value={[state.windDirection]}
-                min={0}
-                max={359}
-                step={5}
-                onValueChange={(val) => onWindDirectionChange(Array.isArray(val) ? val[0] : val)}
-              />
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Prędkość wiatru</span>
-                <span>{state.windSpeed} m/s</span>
-              </div>
-              <Slider
-                value={[state.windSpeed * 10]}
-                min={5}
-                max={200}
-                step={5}
-                onValueChange={(val) => onWindSpeedChange((Array.isArray(val) ? val[0] : val) / 10)}
-              />
-            </div>
-          </div>
-        </>
+        <ToxicControls
+          substanceId={state.substanceId}
+          releaseScenario={state.releaseScenario}
+          windDirection={state.windDirection}
+          windSpeed={state.windSpeed}
+          stabilityClass={state.stabilityClass}
+          timeOfDay={state.timeOfDay}
+          cloudCover={state.cloudCover}
+          stabilityOverride={state.stabilityOverride}
+          zoneResults={state.zoneResults}
+          onSubstanceChange={onSubstanceChange}
+          onReleaseChange={onReleaseChange}
+          onWindDirectionChange={onWindDirectionChange}
+          onWindSpeedChange={onWindSpeedChange}
+          onStabilityChange={onStabilityChange}
+          onStabilityReset={onStabilityReset}
+          onTimeOfDayChange={onTimeOfDayChange}
+          onCloudCoverChange={onCloudCoverChange}
+        />
       )}
 
       {/* Flood: ISOK scenario selector */}
