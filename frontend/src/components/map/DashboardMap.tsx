@@ -11,7 +11,12 @@ import {
   type MapLayerMouseEvent,
 } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { LUBLIN_CENTER, LUBELSKIE_BOUNDS } from "@/lib/geo-utils";
+import {
+  LUBLIN_CENTER,
+  LUBELSKIE_BOUNDS,
+  VISTULA_LUBELSKIE,
+  WIEPRZ_LUBELSKIE,
+} from "@/lib/geo-utils";
 import type { LayerConfig } from "@/types/layer";
 import { GeoJsonLayer } from "./GeoJsonLayer";
 import { FeaturePopup } from "./FeaturePopup";
@@ -89,6 +94,26 @@ export function DashboardMap({
     setPopupFeature(null);
   }, []);
 
+  // River lines rendered when scenario is active
+  const riverGeoJson = useMemo(() => {
+    if (scenarioZones.length === 0) return null;
+    return {
+      type: "FeatureCollection" as const,
+      features: [
+        {
+          type: "Feature" as const,
+          properties: { name: "Wisła" },
+          geometry: { type: "LineString" as const, coordinates: VISTULA_LUBELSKIE },
+        },
+        {
+          type: "Feature" as const,
+          properties: { name: "Wieprz" },
+          geometry: { type: "LineString" as const, coordinates: WIEPRZ_LUBELSKIE },
+        },
+      ],
+    };
+  }, [scenarioZones.length]);
+
   return (
     <Map
       ref={mapRef}
@@ -126,6 +151,31 @@ export function DashboardMap({
           />
         );
       })}
+
+      {/* River lines — visible when a scenario is active */}
+      {riverGeoJson && (
+        <Source id="rivers-line" type="geojson" data={riverGeoJson}>
+          <Layer
+            id="rivers-line-glow"
+            type="line"
+            paint={{
+              "line-color": "#60a5fa",
+              "line-width": 6,
+              "line-opacity": 0.3,
+              "line-blur": 3,
+            }}
+          />
+          <Layer
+            id="rivers-line-main"
+            type="line"
+            paint={{
+              "line-color": "#93c5fd",
+              "line-width": 2.5,
+              "line-opacity": 0.9,
+            }}
+          />
+        </Source>
+      )}
 
       {/* Scenario zones (toxic cloud / flood) */}
       {scenarioZones.map((zone) => (
