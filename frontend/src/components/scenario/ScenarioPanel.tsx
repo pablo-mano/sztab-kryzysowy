@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Power, PowerOff, Flame, Droplets } from "lucide-react";
+import { Play, ArrowLeft, Flame, Droplets } from "lucide-react";
 import { TimelineSlider } from "./TimelineSlider";
 import { ThreatList } from "./ThreatList";
 import { FloodControls } from "./FloodControls";
@@ -58,8 +58,8 @@ export function ScenarioPanel({
             onClick={() => onSelectScenario("toxic-cloud")}
             className="w-full flex items-center justify-center gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
           >
-            <Power className="w-4 h-4" />
-            Aktywuj scenariusz
+            <Play className="w-4 h-4" />
+            Odtwórz scenariusz
           </button>
         </div>
 
@@ -77,8 +77,8 @@ export function ScenarioPanel({
             onClick={() => onSelectScenario("flood")}
             className="w-full flex items-center justify-center gap-2 rounded-md bg-blue-500/10 border border-blue-500/30 px-3 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20 transition-colors"
           >
-            <Power className="w-4 h-4" />
-            Aktywuj scenariusz
+            <Play className="w-4 h-4" />
+            Odtwórz scenariusz
           </button>
         </div>
       </div>
@@ -97,10 +97,10 @@ export function ScenarioPanel({
         </h3>
         <button
           onClick={onDeactivate}
-          className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title="Dezaktywuj"
+          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-accent text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          <PowerOff className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Powrót
         </button>
       </div>
 
