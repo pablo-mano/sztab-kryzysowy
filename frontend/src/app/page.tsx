@@ -17,13 +17,12 @@ function useAllLayerData(
   layerIds: string[],
   isVisible: (id: string) => boolean,
   regionFilter: RegionFilter | null,
-  zoom: number | null,
 ) {
   const results: Record<string, GeoFeatureCollection | undefined> = {};
 
   for (const id of layerIds) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data } = useLayerData(id, isVisible(id), regionFilter, zoom);
+    const { data } = useLayerData(id, isVisible(id), regionFilter);
     results[id] = data;
   }
 
@@ -57,7 +56,6 @@ export default function DashboardPage() {
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("h3");
-  const [mapZoom, setMapZoom] = useState<number>(8);
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
 
@@ -71,7 +69,7 @@ export default function DashboardPage() {
     [allLayers, isVisible, mapMode],
   );
 
-  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter, mapZoom);
+  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter);
 
   const visibleLayers = useMemo(
     () => allLayers.filter((l) => isEffectivelyVisible(l.id)),
@@ -117,10 +115,6 @@ export default function DashboardPage() {
     setRegionFilter(null);
   }, []);
 
-  const handleZoomChange = useCallback((zoom: number) => {
-    setMapZoom(zoom);
-  }, []);
-
   return (
     <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar — left (layers) */}
@@ -144,7 +138,6 @@ export default function DashboardPage() {
           layerOpacity={layerOpacity}
           scenarioZones={scenarioState.zones}
           mapRef={mapRef}
-          onZoomChange={handleZoomChange}
         />
         <MapLegend layers={visibleLayers} />
       </div>

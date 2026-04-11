@@ -24,7 +24,6 @@ interface DashboardMapProps {
   layerOpacity: Record<string, number>;
   scenarioZones?: ScenarioZone[];
   mapRef?: React.RefObject<MapRef | null>;
-  onZoomChange?: (zoom: number) => void;
 }
 
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/dark";
@@ -35,7 +34,6 @@ export function DashboardMap({
   layerOpacity,
   scenarioZones = [],
   mapRef: externalMapRef,
-  onZoomChange,
 }: DashboardMapProps) {
   const internalMapRef = useRef<MapRef>(null);
   const mapRef = externalMapRef ?? internalMapRef;
@@ -91,13 +89,6 @@ export function DashboardMap({
     setPopupFeature(null);
   }, []);
 
-  const handleZoomEnd = useCallback(() => {
-    const map = mapRef.current?.getMap();
-    if (map && onZoomChange) {
-      onZoomChange(Math.round(map.getZoom()));
-    }
-  }, [onZoomChange]);
-
   return (
     <Map
       ref={mapRef}
@@ -118,7 +109,6 @@ export function DashboardMap({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onZoomEnd={handleZoomEnd}
     >
       <NavigationControl position="top-right" />
       <ScaleControl position="bottom-left" />

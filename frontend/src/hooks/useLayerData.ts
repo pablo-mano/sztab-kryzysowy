@@ -15,21 +15,16 @@ export function useLayerData(
   layerId: string,
   enabled = true,
   regionFilter?: RegionFilter | null,
-  zoom?: number | null,
 ) {
   const layer = getLayer(layerId);
   const refreshInterval = layer?.source.cacheTTL;
-  const isH3 = layer?.source.h3;
 
-  // Build URL with optional region filter and zoom
+  // Build URL with optional region filter
   let url = `/api/layers/${layerId}`;
   const params = new URLSearchParams();
   if (regionFilter) {
     params.set("region", regionFilter.name);
     params.set("regionLevel", regionFilter.level);
-  }
-  if (isH3 && zoom != null) {
-    params.set("zoom", String(Math.round(zoom)));
   }
   const qs = params.toString();
   if (qs) url += `?${qs}`;
