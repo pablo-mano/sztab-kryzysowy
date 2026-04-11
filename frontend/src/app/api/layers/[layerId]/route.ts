@@ -8,10 +8,10 @@ import type { GeoFeatureCollection } from "@/types/feature";
 
 /** Map zoom level → H3 resolution for dynamic hex sizing */
 function zoomToH3Resolution(zoom: number): number {
-  if (zoom <= 7) return 4;
-  if (zoom <= 9) return 5;
-  if (zoom <= 11) return 6;
-  return 7;
+  if (zoom <= 7) return 5;
+  if (zoom <= 9) return 6;
+  if (zoom <= 11) return 7;
+  return 8;
 }
 
 /**
@@ -19,59 +19,119 @@ function zoomToH3Resolution(zoom: number): number {
  * At res7 uses existing views; at coarser resolutions aggregates via H3_CELL_TO_PARENT.
  */
 function buildH3Sql(layerId: string, resolution: number): string {
-  const gridView = `v_h3_grid_r${resolution}`;
+  // For resolutions with a pre-built grid view, use it for full coverage.
+  // For finer resolutions (8+), aggregate directly from source data (no grid needed).
+  const hasGrid = resolution <= 7;
+  const gridView = hasGrid ? `v_h3_grid_r${resolution}` : null;
+
+  // Helper: column to derive target H3 cell from raw_osm_pois
+  // res7 column exists natively; for coarser use H3_CELL_TO_PARENT, for finer use h3_res9 → parent
+  const poiH3Expr = resolution <= 7
+    ? `H3_CELL_TO_PARENT(p.h3_res7, ${resolution})`
+    : resolution === 8
+      ? `H3_CELL_TO_PARENT(p.h3_res9, 8)`
+      : `p.h3_res9`;
 
   if (layerId === "h3-poi-density") {
     if (resolution === 7) {
       return `SELECT h3_index, poi_count, total_population, amenity_types, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_poi_density`;
     }
+    if (gridView) {
+      return `
+        SELECT g.h3_index,
+               COUNT(p.osm_id) AS poi_count,
+               COALESCE(SUM(p.estimated_population), 0) AS total_population,
+               COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
+               ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+        FROM ${gridView} g
+        LEFT JOIN raw_osm_pois p ON ${poiH3Expr} = g.h3_index
+        GROUP BY g.h3_index`;
+    }
+    // No grid — aggregate directly from POI data
     return `
-      SELECT g.h3_index,
+      SELECT ${poiH3Expr} AS h3_index,
              COUNT(p.osm_id) AS poi_count,
              COALESCE(SUM(p.estimated_population), 0) AS total_population,
              COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
-             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
-      FROM ${gridView} g
-      LEFT JOIN raw_osm_pois p ON H3_CELL_TO_PARENT(p.h3_res7, ${resolution}) = g.h3_index
-      GROUP BY g.h3_index`;
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(${poiH3Expr})) AS hex_boundary
+      FROM raw_osm_pois p
+      WHERE p.h3_res9 IS NOT NULL
+      GROUP BY ${poiH3Expr}`;
   }
 
   if (layerId === "h3-air-quality") {
     if (resolution === 7) {
       return `SELECT h3_index, avg_value, max_value, param_code, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_air_quality`;
     }
+    const aqH3Expr = `H3_CELL_TO_PARENT(sub.h3_index, ${resolution})`;
+    if (gridView) {
+      return `
+        SELECT g.h3_index,
+               AVG(sub.avg_value) AS avg_value,
+               MAX(sub.max_value) AS max_value,
+               'PM10' AS param_code,
+               ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+        FROM ${gridView} g
+        JOIN v_h3_air_quality sub ON ${aqH3Expr} = g.h3_index
+        GROUP BY g.h3_index`;
+    }
     return `
-      SELECT g.h3_index,
+      SELECT ${aqH3Expr} AS h3_index,
              AVG(sub.avg_value) AS avg_value,
              MAX(sub.max_value) AS max_value,
              'PM10' AS param_code,
-             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
-      FROM ${gridView} g
-      JOIN v_h3_air_quality sub ON H3_CELL_TO_PARENT(sub.h3_index, ${resolution}) = g.h3_index
-      GROUP BY g.h3_index`;
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(${aqH3Expr})) AS hex_boundary
+      FROM v_h3_air_quality sub
+      GROUP BY ${aqH3Expr}`;
   }
 
   if (layerId === "h3-risk-score") {
     if (resolution === 7) {
       return `SELECT h3_index, poi_count, total_population, amenity_types, avg_pm10, risk_score, ST_ASGEOJSON(hex_boundary) AS hex_boundary FROM v_h3_risk_score`;
     }
+    const aqParentExpr = `H3_CELL_TO_PARENT(h3_index, ${resolution})`;
+    if (gridView) {
+      return `
+        SELECT g.h3_index,
+               COUNT(p.osm_id) AS poi_count,
+               COALESCE(SUM(p.estimated_population), 0) AS total_population,
+               COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
+               COALESCE(aq.avg_value, 0) AS avg_pm10,
+               ROUND(COALESCE(SUM(p.estimated_population), 0) * COALESCE(aq.avg_value, 0) / 100, 2) AS risk_score,
+               ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
+        FROM ${gridView} g
+        LEFT JOIN raw_osm_pois p ON ${poiH3Expr} = g.h3_index
+        LEFT JOIN (
+          SELECT ${aqParentExpr} AS parent_h3,
+                 AVG(avg_value) AS avg_value
+          FROM v_h3_air_quality
+          GROUP BY parent_h3
+        ) aq ON g.h3_index = aq.parent_h3
+        GROUP BY g.h3_index, aq.avg_value`;
+    }
     return `
-      SELECT g.h3_index,
-             COUNT(p.osm_id) AS poi_count,
-             COALESCE(SUM(p.estimated_population), 0) AS total_population,
-             COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types,
+      SELECT poi.h3_index,
+             poi.poi_count,
+             poi.total_population,
+             poi.amenity_types,
              COALESCE(aq.avg_value, 0) AS avg_pm10,
-             ROUND(COALESCE(SUM(p.estimated_population), 0) * COALESCE(aq.avg_value, 0) / 100, 2) AS risk_score,
-             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(g.h3_index)) AS hex_boundary
-      FROM ${gridView} g
-      LEFT JOIN raw_osm_pois p ON H3_CELL_TO_PARENT(p.h3_res7, ${resolution}) = g.h3_index
+             ROUND(poi.total_population * COALESCE(aq.avg_value, 0) / 100, 2) AS risk_score,
+             ST_ASGEOJSON(H3_CELL_TO_BOUNDARY(poi.h3_index)) AS hex_boundary
+      FROM (
+        SELECT ${poiH3Expr} AS h3_index,
+               COUNT(p.osm_id) AS poi_count,
+               COALESCE(SUM(p.estimated_population), 0) AS total_population,
+               COALESCE(ARRAY_TO_STRING(ARRAY_AGG(DISTINCT p.amenity_type), ','), '') AS amenity_types
+        FROM raw_osm_pois p
+        WHERE p.h3_res9 IS NOT NULL
+        GROUP BY ${poiH3Expr}
+      ) poi
       LEFT JOIN (
-        SELECT H3_CELL_TO_PARENT(h3_index, ${resolution}) AS parent_h3,
+        SELECT ${aqParentExpr} AS parent_h3,
                AVG(avg_value) AS avg_value
         FROM v_h3_air_quality
         GROUP BY parent_h3
-      ) aq ON g.h3_index = aq.parent_h3
-      GROUP BY g.h3_index, aq.avg_value`;
+      ) aq ON poi.h3_index = aq.parent_h3`;
   }
 
   // Fallback — should not reach here
