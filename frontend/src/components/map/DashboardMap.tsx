@@ -110,7 +110,7 @@ export function DashboardMap({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <NavigationControl position="top-left" />
+      <NavigationControl position="top-right" />
       <ScaleControl position="bottom-left" />
 
       {visibleLayers.map((layer) => {

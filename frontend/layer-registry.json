@@ -213,7 +213,7 @@
       },
       "interactive": true,
       "popupFields": ["poi_count", "total_population", "amenity_types"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": {
         "type": "gradient",
         "label": "Gęstość POI",

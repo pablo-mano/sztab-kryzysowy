@@ -49,7 +49,7 @@ export default function DashboardPage() {
   } = useScenario();
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
-  const [mapMode, setMapMode] = useState<MapMode>("points");
+  const [mapMode, setMapMode] = useState<MapMode>("h3");
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
 
