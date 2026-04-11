@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useCallback } from "react";
+import { type MapRef } from "@vis.gl/react-maplibre";
 import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
-import type { GeoFeatureCollection } from "@/types/feature";
+import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import type { KpiConfig } from "@/types/dashboard";
 
 function useAllLayerData(
@@ -59,6 +60,19 @@ export default function DashboardPage() {
     return map;
   }, [allLayers, getOpacity]);
 
+  const mapRef = useRef<MapRef>(null);
+
+  const handleFeatureClick = useCallback((feature: GeoFeature, _layerId: string) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const geom = feature.geometry;
+    if (geom.type === "Point") {
+      const [lng, lat] = geom.coordinates as [number, number];
+      map.flyTo({ center: [lng, lat], zoom: 14, duration: 1200 });
+    }
+  }, []);
+
   // Build KPIs from visible layers that have data
   const kpis = useMemo<KpiConfig[]>(() => {
     const items: KpiConfig[] = [];
@@ -89,6 +103,9 @@ export default function DashboardPage() {
         onOpacityChange={setOpacity}
         kpis={kpis}
         lastUpdate={new Date()}
+        visibleLayers={visibleLayers}
+        layerData={layerData}
+        onFeatureClick={handleFeatureClick}
         scenario={scenarioState}
         onScenarioActivate={scenarioActivate}
         onScenarioDeactivate={scenarioDeactivate}
@@ -105,6 +122,7 @@ export default function DashboardPage() {
           layerData={layerData}
           layerOpacity={layerOpacity}
           scenarioZones={scenarioState.zones}
+          mapRef={mapRef}
         />
         <MapLegend layers={visibleLayers} />
       </div>

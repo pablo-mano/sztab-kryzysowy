@@ -23,6 +23,7 @@ interface DashboardMapProps {
   layerData: Record<string, GeoFeatureCollection | undefined>;
   layerOpacity: Record<string, number>;
   scenarioZones?: ToxicCloudZone[];
+  mapRef?: React.RefObject<MapRef | null>;
 }
 
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/dark";
@@ -32,8 +33,10 @@ export function DashboardMap({
   layerData,
   layerOpacity,
   scenarioZones = [],
+  mapRef: externalMapRef,
 }: DashboardMapProps) {
-  const mapRef = useRef<MapRef>(null);
+  const internalMapRef = useRef<MapRef>(null);
+  const mapRef = externalMapRef ?? internalMapRef;
   const [popupFeature, setPopupFeature] = useState<{
     feature: GeoFeature;
     layerId: string;

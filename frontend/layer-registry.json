@@ -16,7 +16,7 @@
         "paint": { "line-color": "#4a9eff", "line-width": 2, "line-opacity": 0.8 }
       },
       "interactive": false,
-      "defaultVisible": true,
+      "defaultVisible": false,
       "legend": { "type": "simple", "label": "Granica województwa", "color": "#4a9eff" }
     },
     {
@@ -36,7 +36,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "population", "area_km2"],
-      "defaultVisible": true,
+      "defaultVisible": false,
       "legend": { "type": "simple", "label": "Powiaty", "color": "#4a9eff" }
     },
     {
@@ -75,7 +75,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Szpitale", "color": "#ef4444" }
     },
     {
@@ -132,7 +132,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Domy opieki", "color": "#f59e0b" }
     },
     {

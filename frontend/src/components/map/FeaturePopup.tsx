@@ -18,8 +18,29 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  name: "Nazwa",
+  city: "Miasto",
+  estimated_population: "Szac. populacja",
+  population: "Populacja",
+  area_km2: "Powierzchnia (km²)",
+  station_name: "Stacja",
+  param_code: "Parametr",
+  value: "Wartość",
+  aqi_label: "Jakość powietrza",
+  measure_date: "Data pomiaru",
+  amenity_type: "Typ obiektu",
+  poi_count: "Liczba POI",
+  total_population: "Populacja łączna",
+  amenity_types: "Typy obiektów",
+  avg_value: "Średnia wartość",
+  avg_pm10: "Średnie PM10",
+  risk_score: "Wskaźnik ryzyka",
+  teryt: "TERYT",
+};
+
 function formatLabel(key: string): string {
-  return key
+  return FIELD_LABELS[key] ?? key
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }

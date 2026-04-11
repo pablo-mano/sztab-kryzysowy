@@ -25,6 +25,8 @@ function LayerRow({
   const legendColor =
     layer.legend?.color ?? layer.style.paint["circle-color"] ?? "#888";
 
+  const hasFallback = layer.id.startsWith("poi-") || layer.id.startsWith("env-");
+
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-3">
@@ -32,7 +34,12 @@ function LayerRow({
           className="w-3 h-3 rounded-full shrink-0"
           style={{ backgroundColor: typeof legendColor === "string" ? legendColor : "#888" }}
         />
-        <span className="text-sm flex-1 truncate">{layer.name}</span>
+        <div className="flex-1 min-w-0">
+          <span className="text-sm truncate block">{layer.name}</span>
+          {!hasFallback && (
+            <span className="text-[10px] text-muted-foreground">Snowflake</span>
+          )}
+        </div>
         <Switch checked={state.visible} onCheckedChange={onToggle} />
       </div>
       {state.visible && (

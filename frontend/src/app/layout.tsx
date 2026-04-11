@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sztab Kryzysowy — Geospatial Decision Dashboard",
+  title: "Mapa Zarządzania Kryzysowego — Geospatial Decision Support",
   description: "Inteligentna mapa województwa lubelskiego. Dashboard decyzyjny dla zarządzania kryzysowego.",
 };
 
