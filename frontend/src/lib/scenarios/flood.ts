@@ -1,7 +1,7 @@
 import * as turf from "@turf/turf";
 import type { Feature, LineString } from "geojson";
 import type { ScenarioZone } from "@/types/scenario";
-import { VISTULA_LUBELSKIE } from "@/lib/geo-utils";
+import { VISTULA_LUBELSKIE, WIEPRZ_LUBELSKIE } from "@/lib/geo-utils";
 
 export interface FloodParams {
   waterLevel: number; // 0-15 meters
@@ -45,7 +45,8 @@ export function generateFloodZones(params: FloodParams): ScenarioZone[] {
 
   if (hours <= 0) return [];
 
-  const riverLine: Feature<LineString> = turf.lineString(VISTULA_LUBELSKIE);
+  const vistulaLine: Feature<LineString> = turf.lineString(VISTULA_LUBELSKIE);
+  const wierzLine: Feature<LineString> = turf.lineString(WIEPRZ_LUBELSKIE);
 
   const waterLevelFactor = waterLevel / 5;
   const timeFactor = Math.min(1, hours / 24);
@@ -53,15 +54,22 @@ export function generateFloodZones(params: FloodParams): ScenarioZone[] {
 
   return FLOOD_ZONES.map(({ zone, label, description, baseRadius, color, opacity }) => {
     const radius = baseRadius * waterLevelFactor * timeFactor * rainfallFactor;
-    const buffered = turf.buffer(riverLine, Math.max(0.1, radius), {
-      units: "kilometers",
-    });
+    const safeRadius = Math.max(0.1, radius);
+
+    // Buffer both rivers and merge into single zone
+    const vistulaBuffer = turf.buffer(vistulaLine, safeRadius, { units: "kilometers" });
+    // Wieprz gets slightly smaller flood zones (smaller river)
+    const wierzBuffer = turf.buffer(wierzLine, safeRadius * 0.6, { units: "kilometers" });
+
+    const merged = turf.union(
+      turf.featureCollection([vistulaBuffer!, wierzBuffer!]),
+    );
 
     return {
       zone,
       label,
       description,
-      feature: buffered!,
+      feature: merged!,
       color,
       opacity,
     };
