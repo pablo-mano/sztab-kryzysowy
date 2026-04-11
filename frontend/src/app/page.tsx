@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useCallback, useState } from "react";
+import { useMemo, useRef, useCallback, useState, useEffect } from "react";
 import { type MapRef } from "@vis.gl/react-maplibre";
 import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
@@ -11,6 +11,7 @@ import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
 import { useScenarioImpact } from "@/hooks/useScenarioImpact";
 import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
+import { PULAWY_CENTER } from "@/lib/geo-utils";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
 /** Layer IDs that should be filtered by flood scenario */
@@ -72,6 +73,12 @@ export default function DashboardPage() {
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("h3");
   const [floodFilterActive, setFloodFilterActive] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  // Set lastUpdate only on client to avoid hydration mismatch
+  useEffect(() => {
+    setLastUpdate(new Date());
+  }, []);
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
 
@@ -108,6 +115,15 @@ export default function DashboardPage() {
   }, [allLayers, getOpacity]);
 
   const mapRef = useRef<MapRef>(null);
+
+  // Auto-flyTo when scenario activates
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (scenarioState.active && scenarioState.scenarioType === "toxic-cloud") {
+      map.flyTo({ center: PULAWY_CENTER, zoom: 11, duration: 1500 });
+    }
+  }, [scenarioState.active, scenarioState.scenarioType]);
 
   const handleFeatureClick = useCallback((feature: GeoFeature, layerId: string) => {
     const map = mapRef.current;
@@ -146,7 +162,7 @@ export default function DashboardPage() {
       <Sidebar
         layerStates={layerStates}
         onToggle={toggleLayer}
-        lastUpdate={new Date()}
+        lastUpdate={lastUpdate}
         layerData={layerData}
         onFeatureClick={handleFeatureClick}
         regionFilter={regionFilter}
