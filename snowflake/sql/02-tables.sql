@@ -26,6 +26,7 @@ CREATE OR REPLACE TABLE raw_osm_pois (
   longitude FLOAT NOT NULL,
   tags VARIANT,                      -- pelny JSON z OSM tags
   estimated_population INT,          -- szacunek: hospital=500, school=300, kindergarten=80, nursing_home=100, clinic=50
+  city STRING,                       -- miasto/miejscowosc
   geo GEOGRAPHY,                     -- ST_MAKEPOINT(longitude, latitude)
   h3_res7 STRING,                    -- H3_LATLNG_TO_CELL(latitude, longitude, 7)
   h3_res9 STRING,                    -- H3_LATLNG_TO_CELL(latitude, longitude, 9)

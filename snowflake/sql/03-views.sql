@@ -7,7 +7,7 @@ USE SCHEMA PUBLIC;
 
 -- 3.1 Aktualna jakosc powietrza (per stacja, najnowszy pomiar per parametr)
 CREATE OR REPLACE VIEW v_air_quality_current AS
-SELECT s.station_id, s.station_name, s.latitude, s.longitude, s.h3_res7,
+SELECT s.station_id, s.station_name, s.latitude, s.longitude, s.city, s.h3_res7,
        m.param_code, m.value, m.measure_date,
        CASE 
          WHEN m.param_code = 'PM10' AND m.value <= 50 THEN 'dobry'
@@ -62,7 +62,7 @@ CREATE OR REPLACE VIEW v_h3_poi_density AS
 SELECT h3_res7 AS h3_index,
        COUNT(*) AS poi_count,
        SUM(estimated_population) AS total_population,
-       ARRAY_AGG(DISTINCT amenity_type) AS amenity_types,
+       ARRAY_TO_STRING(ARRAY_AGG(DISTINCT amenity_type), ',') AS amenity_types,
        COUNT(DISTINCT CASE WHEN amenity_type = 'hospital' THEN osm_id END) AS hospital_count,
        COUNT(DISTINCT CASE WHEN amenity_type = 'school' THEN osm_id END) AS school_count,
        H3_CELL_TO_BOUNDARY(h3_res7) AS hex_boundary
