@@ -11,24 +11,36 @@ function isConfigured(): boolean {
   return !!(
     process.env.SNOWFLAKE_ACCOUNT &&
     process.env.SNOWFLAKE_USER &&
-    (process.env.SNOWFLAKE_PASSWORD || process.env.SNOWFLAKE_PRIVATE_KEY)
+    (process.env.SNOWFLAKE_PASSWORD || process.env.SNOWFLAKE_PRIVATE_KEY || process.env.SNOWFLAKE_PRIVATE_KEY_BASE64)
   );
 }
 
 function getConnectionOptions(): snowflake.ConnectionOptions {
+  const account = process.env.SNOWFLAKE_ACCOUNT!.trim();
+  const host = process.env.SNOWFLAKE_HOST?.trim();
   const base: snowflake.ConnectionOptions = {
-    account: process.env.SNOWFLAKE_ACCOUNT!,
-    username: process.env.SNOWFLAKE_USER!,
-    warehouse: process.env.SNOWFLAKE_WAREHOUSE || "SZTAB_WH",
-    database: process.env.SNOWFLAKE_DATABASE || "SZTAB_DB",
-    schema: process.env.SNOWFLAKE_SCHEMA || "PUBLIC",
+    account,
+    username: process.env.SNOWFLAKE_USER!.trim(),
+    warehouse: (process.env.SNOWFLAKE_WAREHOUSE || "SZTAB_WH").trim(),
+    database: (process.env.SNOWFLAKE_DATABASE || "SZTAB_DB").trim(),
+    schema: (process.env.SNOWFLAKE_SCHEMA || "PUBLIC").trim(),
+    ...(host && {
+      host,
+      accessUrl: `https://${host}`,
+    }),
   };
 
-  // Key-pair auth (PEM private key as env var)
-  if (process.env.SNOWFLAKE_PRIVATE_KEY) {
-    const rawKey = process.env.SNOWFLAKE_PRIVATE_KEY.replace(/\\n/g, "\n");
+  // Key-pair auth
+  const keyEnv = process.env.SNOWFLAKE_PRIVATE_KEY_BASE64 || process.env.SNOWFLAKE_PRIVATE_KEY;
+  if (keyEnv) {
+    let pem: string;
+    if (process.env.SNOWFLAKE_PRIVATE_KEY_BASE64) {
+      pem = Buffer.from(keyEnv, "base64").toString("utf-8");
+    } else {
+      pem = keyEnv.replace(/\\n/g, "\n").trim();
+    }
     const privateKeyObject = crypto.createPrivateKey({
-      key: rawKey,
+      key: pem,
       format: "pem",
     });
     return {
