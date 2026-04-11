@@ -20,6 +20,8 @@ interface ScenarioSidebarProps {
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
   onFloodScenarioChange: (id: FloodScenarioId) => void;
+  floodFilterActive: boolean;
+  onFloodFilterToggle: (active: boolean) => void;
 }
 
 export function ScenarioSidebar({
@@ -33,6 +35,8 @@ export function ScenarioSidebar({
   onWindDirectionChange,
   onWindSpeedChange,
   onFloodScenarioChange,
+  floodFilterActive,
+  onFloodFilterToggle,
 }: ScenarioSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -81,6 +85,8 @@ export function ScenarioSidebar({
             onWindDirectionChange={onWindDirectionChange}
             onWindSpeedChange={onWindSpeedChange}
             onFloodScenarioChange={onFloodScenarioChange}
+            floodFilterActive={floodFilterActive}
+            onFloodFilterToggle={onFloodFilterToggle}
           />
         </div>
       </ScrollArea>

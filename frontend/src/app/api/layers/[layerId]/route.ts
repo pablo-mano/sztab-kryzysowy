@@ -115,6 +115,28 @@ function buildRegionFilter(
   };
 }
 
+/** SQL WHERE clauses for ISOK flood scenarios */
+const FLOOD_SCENARIO_FILTERS: Record<string, string> = {
+  q10: "return_period_years = 10",
+  q100: "return_period_years = 100 AND likelihood_description LIKE 'scenariusz Q 1%'",
+  q500: "return_period_years = 500",
+};
+
+/**
+ * Build a spatial filter clause for point-based layers against flood hazard areas.
+ * Uses ST_WITHIN to filter points inside official ISOK flood zones.
+ */
+function buildFloodFilter(
+  floodScenario: string,
+  tableAlias: string,
+): { join: string; where: string } {
+  const scenarioWhere = FLOOD_SCENARIO_FILTERS[floodScenario];
+  return {
+    join: ` JOIN raw_hazard_areas __flood ON ST_WITHIN(${tableAlias}.geo, __flood.geo)`,
+    where: ` AND ${scenarioWhere} AND __flood.geo IS NOT NULL`,
+  };
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ layerId: string }> },
@@ -129,17 +151,22 @@ export async function GET(
   const { searchParams } = request.nextUrl;
   const region = searchParams.get("region");
   const regionLevel = searchParams.get("regionLevel");
+  const floodScenario = searchParams.get("floodScenario");
   const hasRegionFilter = region && regionLevel;
 
   // Skip region filter for admin layers themselves and for layers with geoColumn (polygons/H3)
   const isAdminLayer = layerId.startsWith("admin-");
   const isH3Layer = !!layer.source.h3;
   const isPolygonLayer = !!layer.source.geoColumn;
+  const isPointLayer = !isAdminLayer && !isH3Layer && !isPolygonLayer;
   const applyRegion = hasRegionFilter && !isAdminLayer && !isPolygonLayer;
+  const applyFlood = !!floodScenario && FLOOD_SCENARIO_FILTERS[floodScenario] && isPointLayer;
 
-  const cacheKey = applyRegion
-    ? `layer:${layerId}:${regionLevel}:${region}`
-    : `layer:${layerId}`;
+  const cacheKey = applyFlood
+    ? `layer:${layerId}:flood:${floodScenario}${applyRegion ? `:${regionLevel}:${region}` : ""}`
+    : applyRegion
+      ? `layer:${layerId}:${regionLevel}:${region}`
+      : `layer:${layerId}`;
 
   try {
     const geojson = await cached<GeoFeatureCollection>(
@@ -170,13 +197,24 @@ export async function GET(
             ? ` WHERE ${layer.source.where}`
             : "";
 
-          if (applyRegion) {
-            // Detect lat/lon column names
-            // For raw_osm_pois it's latitude/longitude, for others check
-            const latCol = view.includes("gios") || view.includes("air") ? "LATITUDE" : "LATITUDE";
+          if (applyRegion || applyFlood) {
+            const latCol = "LATITUDE";
             const lonCol = "LONGITUDE";
-            const rf = buildRegionFilter(region!, regionLevel!, "t", latCol, lonCol);
-            sql = `SELECT t.*${geoSelect} FROM ${view} t${rf.join}${where ? where + rf.where : ` WHERE 1=1${rf.where}`}`;
+            let joins = "";
+            let extraWhere = "";
+
+            if (applyRegion) {
+              const rf = buildRegionFilter(region!, regionLevel!, "t", latCol, lonCol);
+              joins += rf.join;
+              extraWhere += rf.where;
+            }
+            if (applyFlood) {
+              const ff = buildFloodFilter(floodScenario!, "t");
+              joins += ff.join;
+              extraWhere += ff.where;
+            }
+
+            sql = `SELECT DISTINCT t.*${geoSelect} FROM ${view} t${joins}${where ? where + extraWhere : ` WHERE 1=1${extraWhere}`}`;
           } else {
             sql = `SELECT *${geoSelect} FROM ${view}${where}`;
           }

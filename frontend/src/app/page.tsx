@@ -13,16 +13,26 @@ import { useScenarioImpact } from "@/hooks/useScenarioImpact";
 import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
+/** Layer IDs that should be filtered by flood scenario */
+const FLOOD_FILTERABLE_LAYERS = new Set([
+  "poi-hospitals",
+  "poi-schools",
+  "poi-kindergartens",
+  "poi-care-homes",
+]);
+
 function useAllLayerData(
   layerIds: string[],
   isVisible: (id: string) => boolean,
   regionFilter: RegionFilter | null,
+  floodScenario: string | null,
 ) {
   const results: Record<string, GeoFeatureCollection | undefined> = {};
 
   for (const id of layerIds) {
+    const flood = FLOOD_FILTERABLE_LAYERS.has(id) ? floodScenario : null;
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data } = useLayerData(id, isVisible(id), regionFilter);
+    const { data } = useLayerData(id, isVisible(id), regionFilter, flood);
     results[id] = data;
   }
 
@@ -55,6 +65,7 @@ export default function DashboardPage() {
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("h3");
+  const [floodFilterActive, setFloodFilterActive] = useState(false);
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
 
@@ -68,7 +79,16 @@ export default function DashboardPage() {
     [allLayers, isVisible, mapMode],
   );
 
-  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter);
+  // Pass flood scenario to POI layers when filter is active
+  const activeFloodFilter =
+    floodFilterActive &&
+    scenarioState.active &&
+    scenarioState.scenarioType === "flood" &&
+    !scenarioState.floodLoading
+      ? scenarioState.floodScenarioId
+      : null;
+
+  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter, activeFloodFilter);
 
   const visibleLayers = useMemo(
     () => allLayers.filter((l) => isEffectivelyVisible(l.id)),
@@ -153,6 +173,8 @@ export default function DashboardPage() {
         onWindDirectionChange={scenarioSetWindDirection}
         onWindSpeedChange={scenarioSetWindSpeed}
         onFloodScenarioChange={scenarioSetFloodScenario}
+        floodFilterActive={floodFilterActive}
+        onFloodFilterToggle={setFloodFilterActive}
       />
     </div>
   );

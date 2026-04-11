@@ -15,16 +15,20 @@ export function useLayerData(
   layerId: string,
   enabled = true,
   regionFilter?: RegionFilter | null,
+  floodScenario?: string | null,
 ) {
   const layer = getLayer(layerId);
   const refreshInterval = layer?.source.cacheTTL;
 
-  // Build URL with optional region filter
+  // Build URL with optional region and flood filters
   let url = `/api/layers/${layerId}`;
   const params = new URLSearchParams();
   if (regionFilter) {
     params.set("region", regionFilter.name);
     params.set("regionLevel", regionFilter.level);
+  }
+  if (floodScenario) {
+    params.set("floodScenario", floodScenario);
   }
   const qs = params.toString();
   if (qs) url += `?${qs}`;

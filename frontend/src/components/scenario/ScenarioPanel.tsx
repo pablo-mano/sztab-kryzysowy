@@ -22,6 +22,8 @@ interface ScenarioPanelProps {
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
   onFloodScenarioChange: (id: FloodScenarioId) => void;
+  floodFilterActive: boolean;
+  onFloodFilterToggle: (active: boolean) => void;
 }
 
 export function ScenarioPanel({
@@ -35,6 +37,8 @@ export function ScenarioPanel({
   onWindDirectionChange,
   onWindSpeedChange,
   onFloodScenarioChange,
+  floodFilterActive,
+  onFloodFilterToggle,
 }: ScenarioPanelProps) {
   if (!state.active) {
     return (
@@ -155,6 +159,8 @@ export function ScenarioPanel({
           selectedScenario={state.floodScenarioId}
           loading={state.floodLoading}
           onScenarioChange={onFloodScenarioChange}
+          filterActive={floodFilterActive}
+          onFilterToggle={onFloodFilterToggle}
         />
       )}
 
