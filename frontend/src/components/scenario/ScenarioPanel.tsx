@@ -159,6 +159,39 @@ export function ScenarioPanel({
       )}
 
       <ThreatList zones={state.zones} impact={impact} />
+
+      {/* Data sources block — flood only */}
+      {isFlood && state.zones.length > 0 && (
+        <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2">
+          <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+            Źródła danych
+          </div>
+          <ul className="text-[11px] text-muted-foreground/80 space-y-1.5 leading-relaxed">
+            <li>
+              <span className="font-medium text-muted-foreground">Strefy zalewowe</span> — Mapy
+              Zagrożenia Powodziowego ISOK, scenariusze Q&nbsp;10%, Q&nbsp;1%, Q&nbsp;0,2%
+              (PGW Wody Polskie / KZGW)
+            </li>
+            <li>
+              <span className="font-medium text-muted-foreground">Wodowskazy</span> — dane
+              pomiarowe IMGW-PIB, aktualizowane co&nbsp;1h
+              z&nbsp;API danepubliczne.imgw.pl
+            </li>
+            <li>
+              <span className="font-medium text-muted-foreground">Przebieg rzek</span> — geometrie
+              OpenStreetMap (Overpass API), 200–900 punktów/rzeka
+            </li>
+            <li>
+              <span className="font-medium text-muted-foreground">Obiekty wrażliwe</span> — szpitale,
+              szkoły, DPS z&nbsp;OpenStreetMap; populacja szacunkowa
+            </li>
+            <li>
+              <span className="font-medium text-muted-foreground">Granice adm.</span> — GUGiK PRG
+              (TERYT), poligony woj./powiat/gmina
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
