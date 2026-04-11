@@ -5,13 +5,14 @@ import { Switch } from "@/components/ui/switch";
 import { Filter, Search } from "lucide-react";
 import type { LayerConfig, LayerState } from "@/types/layer";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
-import { getLayersByGroup } from "@/lib/layer-registry";
+import { getLayersByGroup, isLayerInMode, type MapMode } from "@/lib/layer-registry";
 
 interface LayerPanelProps {
   layerStates: Record<string, LayerState>;
   layerData: Record<string, GeoFeatureCollection | undefined>;
   onToggle: (id: string) => void;
   onFeatureClick?: (feature: GeoFeature, layerId: string) => void;
+  mapMode: MapMode;
 }
 
 function featureName(f: GeoFeature, idx: number): string {
@@ -128,18 +129,22 @@ export function LayerPanel({
   layerData,
   onToggle,
   onFeatureClick,
+  mapMode,
 }: LayerPanelProps) {
   const groups = getLayersByGroup();
 
   return (
     <div className="space-y-4">
-      {Object.entries(groups).map(([group, layers]) => (
+      {Object.entries(groups).map(([group, layers]) => {
+        const filtered = layers.filter((l) => isLayerInMode(l, mapMode));
+        if (filtered.length === 0) return null;
+        return (
         <div key={group}>
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
             {group}
           </h3>
           <div className="space-y-3">
-            {layers.map((layer) => {
+            {filtered.map((layer) => {
               const data = layerData[layer.id];
               const features = data?.features ?? [];
               return (
@@ -156,7 +161,8 @@ export function LayerPanel({
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

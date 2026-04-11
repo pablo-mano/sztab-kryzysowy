@@ -11,6 +11,7 @@ import type { LayerState } from "@/types/layer";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { RegionFilter } from "@/hooks/useLayerData";
+import type { MapMode } from "@/lib/layer-registry";
 
 const LEVEL_LABELS: Record<string, string> = {
   wojewodztwo: "Województwo",
@@ -26,6 +27,7 @@ interface SidebarProps {
   onFeatureClick?: (feature: GeoFeature, layerId: string) => void;
   regionFilter: RegionFilter | null;
   onClearRegion: () => void;
+  mapMode: MapMode;
   scenario: ScenarioState;
   onScenarioActivate: () => void;
   onScenarioDeactivate: () => void;
@@ -43,6 +45,7 @@ export function Sidebar({
   onFeatureClick,
   regionFilter,
   onClearRegion,
+  mapMode,
   scenario,
   onScenarioActivate,
   onScenarioDeactivate,
@@ -128,6 +131,7 @@ export function Sidebar({
               layerData={layerData}
               onToggle={onToggle}
               onFeatureClick={onFeatureClick}
+              mapMode={mapMode}
             />
           </TabsContent>
 

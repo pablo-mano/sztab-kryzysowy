@@ -4,10 +4,12 @@ import { useMemo, useRef, useCallback, useState } from "react";
 import { type MapRef } from "@vis.gl/react-maplibre";
 import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
+import { MapModeToggle } from "@/components/map/MapModeToggle";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
+import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
 function useAllLayerData(
@@ -47,13 +49,25 @@ export default function DashboardPage() {
   } = useScenario();
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
+  const [mapMode, setMapMode] = useState<MapMode>("points");
 
   const layerIds = useMemo(() => allLayers.map((l) => l.id), [allLayers]);
-  const layerData = useAllLayerData(layerIds, isVisible, regionFilter);
+
+  // Layer is effectively visible only if toggled on AND in the current map mode
+  const isEffectivelyVisible = useCallback(
+    (id: string) => {
+      const layer = allLayers.find((l) => l.id === id);
+      if (!layer) return false;
+      return isVisible(id) && isLayerInMode(layer, mapMode);
+    },
+    [allLayers, isVisible, mapMode],
+  );
+
+  const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter);
 
   const visibleLayers = useMemo(
-    () => allLayers.filter((l) => isVisible(l.id)),
-    [allLayers, isVisible],
+    () => allLayers.filter((l) => isEffectivelyVisible(l.id)),
+    [allLayers, isEffectivelyVisible],
   );
 
   const layerOpacity = useMemo(() => {
@@ -106,6 +120,7 @@ export default function DashboardPage() {
         onFeatureClick={handleFeatureClick}
         regionFilter={regionFilter}
         onClearRegion={handleClearRegion}
+        mapMode={mapMode}
         scenario={scenarioState}
         onScenarioActivate={scenarioActivate}
         onScenarioDeactivate={scenarioDeactivate}
@@ -117,6 +132,7 @@ export default function DashboardPage() {
 
       {/* Map area */}
       <div className="flex-1 relative">
+        <MapModeToggle mode={mapMode} onChange={setMapMode} />
         <DashboardMap
           visibleLayers={visibleLayers}
           layerData={layerData}
