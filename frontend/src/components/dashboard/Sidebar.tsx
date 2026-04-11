@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Layers, BarChart3, AlertTriangle, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Layers, AlertTriangle, PanelLeftClose, PanelLeft } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LayerPanel } from "@/components/map/LayerPanel";
 import { KpiGrid } from "./KpiGrid";
@@ -42,7 +42,6 @@ function inferFilterableFields(features: GeoFeature[]): string[] {
 interface SidebarProps {
   layerStates: Record<string, LayerState>;
   onToggle: (id: string) => void;
-  onOpacityChange: (id: string, opacity: number) => void;
   kpis: KpiConfig[];
   lastUpdate: Date | null;
   visibleLayers: LayerConfig[];
@@ -60,7 +59,6 @@ interface SidebarProps {
 export function Sidebar({
   layerStates,
   onToggle,
-  onOpacityChange,
   kpis,
   lastUpdate,
   visibleLayers,
@@ -158,10 +156,6 @@ export function Sidebar({
               Warstwy
             </TabsTrigger>
             <TabsTrigger value={1}>
-              <BarChart3 className="w-3.5 h-3.5" />
-              Dane
-            </TabsTrigger>
-            <TabsTrigger value={2}>
               <AlertTriangle className="w-3.5 h-3.5" />
               Scenariusz
             </TabsTrigger>
@@ -172,15 +166,14 @@ export function Sidebar({
           <TabsContent value={0} className="p-4 space-y-4">
             <LayerPanel
               layerStates={layerStates}
+              layerData={layerData}
               onToggle={onToggle}
-              onOpacityChange={onOpacityChange}
+              onFeatureClick={onFeatureClick}
             />
-          </TabsContent>
 
-          <TabsContent value={1} className="p-4 space-y-4">
             <KpiGrid items={kpis} />
 
-            {layersWithData.length > 0 ? (
+            {layersWithData.length > 0 && (
               <>
                 {/* Layer selector for data view */}
                 <div className="space-y-1">
@@ -217,14 +210,10 @@ export function Sidebar({
                   onFeatureClick={handleFeatureClick}
                 />
               </>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Włącz warstwy, aby zobaczyć dane
-              </p>
             )}
           </TabsContent>
 
-          <TabsContent value={2} className="p-4 space-y-4">
+          <TabsContent value={1} className="p-4 space-y-4">
             <ScenarioPanel
               state={scenario}
               onActivate={onScenarioActivate}

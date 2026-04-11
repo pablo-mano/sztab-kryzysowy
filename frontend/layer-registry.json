@@ -171,6 +171,30 @@
       }
     },
     {
+      "id": "civil-reports",
+      "name": "Zgłoszenia ludności",
+      "group": "Zgłoszenia",
+      "source": {
+        "type": "snowflake",
+        "view": "CIVIL42.PUBLIC.REPORTS",
+        "sql": "SELECT ID, CREATED_AT, LAT, LON, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads', REPLACE(IMAGE_PATH, '@uploads/', ''), 3600) AS image_url, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads_audio', REPLACE(AUDIO_PATH, '@uploads_audio/', ''), 3600) AS audio_url FROM CIVIL42.PUBLIC.REPORTS",
+        "cacheTTL": 60000
+      },
+      "style": {
+        "type": "circle",
+        "paint": {
+          "circle-color": "#f43f5e",
+          "circle-radius": 9,
+          "circle-stroke-color": "#fff",
+          "circle-stroke-width": 2
+        }
+      },
+      "interactive": true,
+      "popupFields": ["created_at", "image_url"],
+      "defaultVisible": true,
+      "legend": { "type": "simple", "label": "Zgłoszenia", "color": "#f43f5e" }
+    },
+    {
       "id": "h3-poi-density",
       "name": "Gęstość infrastruktury (H3)",
       "group": "Analityka H3",

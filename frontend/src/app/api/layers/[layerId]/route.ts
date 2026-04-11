@@ -33,7 +33,7 @@ function rowsToGeoJSON(
       } else if (
         !geoKey &&
         (key === "latitude" || key === "lat") &&
-        row["longitude"] !== undefined
+        (row["longitude"] !== undefined || row["lon"] !== undefined)
       ) {
         geometry = {
           type: "Point" as const,
@@ -49,10 +49,13 @@ function rowsToGeoJSON(
       }
     }
 
-    if (!geometry && row["latitude"] && row["longitude"]) {
+    if (!geometry && (row["latitude"] || row["lat"]) && (row["longitude"] || row["lon"])) {
       geometry = {
         type: "Point" as const,
-        coordinates: [Number(row["longitude"]), Number(row["latitude"])],
+        coordinates: [
+          Number(row["longitude"] ?? row["lon"]),
+          Number(row["latitude"] ?? row["lat"]),
+        ],
       };
     }
 
@@ -92,14 +95,18 @@ export async function GET(
       `layer:${layerId}`,
       layer.source.cacheTTL,
       async () => {
-        const geoSelect = layer.source.geoColumn
-          ? `, ST_ASGEOJSON(${layer.source.geoColumn}) AS ${layer.source.geoColumn}`
-          : "";
-        const where = layer.source.where
-          ? ` WHERE ${layer.source.where}`
-          : "";
-
-        const sql = `SELECT *${geoSelect} FROM ${layer.source.view}${where}`;
+        let sql: string;
+        if (layer.source.sql) {
+          sql = layer.source.sql;
+        } else {
+          const geoSelect = layer.source.geoColumn
+            ? `, ST_ASGEOJSON(${layer.source.geoColumn}) AS ${layer.source.geoColumn}`
+            : "";
+          const where = layer.source.where
+            ? ` WHERE ${layer.source.where}`
+            : "";
+          sql = `SELECT *${geoSelect} FROM ${layer.source.view}${where}`;
+        }
         const rows = await query(sql);
         return rowsToGeoJSON(
           rows as Record<string, unknown>[],

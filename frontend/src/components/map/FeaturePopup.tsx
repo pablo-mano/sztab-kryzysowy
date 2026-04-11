@@ -37,6 +37,10 @@ const FIELD_LABELS: Record<string, string> = {
   avg_pm10: "Średnie PM10",
   risk_score: "Wskaźnik ryzyka",
   teryt: "TERYT",
+  created_at: "Data zgłoszenia",
+  audio_url: "Nagranie audio",
+  image_url: "Zdjęcie",
+  id: "ID zgłoszenia",
 };
 
 function formatLabel(key: string): string {
@@ -71,14 +75,35 @@ export function FeaturePopup({
             {layer.name}
           </div>
         )}
-        {fields.map((field) => (
-          <div key={field} className="flex justify-between gap-4 text-sm">
-            <span className="text-muted-foreground">{formatLabel(field)}</span>
-            <span className="font-medium text-right">
-              {formatValue(properties[field])}
-            </span>
-          </div>
-        ))}
+        {fields.map((field) => {
+          const value = properties[field];
+          const isImageUrl =
+            field === "image_url" &&
+            typeof value === "string" &&
+            value.startsWith("http");
+
+          if (isImageUrl) {
+            return (
+              <div key={field} className="space-y-1">
+                <span className="text-xs text-muted-foreground">{formatLabel(field)}</span>
+                <img
+                  src={value as string}
+                  alt="Zdjęcie zgłoszenia"
+                  className="w-full max-w-[260px] rounded border border-border"
+                />
+              </div>
+            );
+          }
+
+          return (
+            <div key={field} className="flex justify-between gap-4 text-sm">
+              <span className="text-muted-foreground">{formatLabel(field)}</span>
+              <span className="font-medium text-right">
+                {formatValue(value)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </Popup>
   );

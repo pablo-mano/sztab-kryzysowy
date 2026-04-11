@@ -100,7 +100,6 @@ export default function DashboardPage() {
       <Sidebar
         layerStates={layerStates}
         onToggle={toggleLayer}
-        onOpacityChange={setOpacity}
         kpis={kpis}
         lastUpdate={new Date()}
         visibleLayers={visibleLayers}

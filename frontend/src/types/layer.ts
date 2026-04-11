@@ -1,6 +1,7 @@
 export interface LayerSource {
   type: "snowflake";
   view: string;
+  sql?: string;
   where?: string;
   geoColumn?: string;
   cacheTTL: number;
