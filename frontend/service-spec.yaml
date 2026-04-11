@@ -1,0 +1,27 @@
+spec:
+  containers:
+  - name: sztab-kryzysowy
+    image: /SZTAB_DB/PUBLIC/SZTAB_REPO/sztab-kryzysowy:latest
+    env:
+      HOSTNAME: "0.0.0.0"
+      PORT: "8080"
+      NODE_ENV: production
+      SNOWFLAKE_ACCOUNT: "KWGWPRT-OT51051"
+      SNOWFLAKE_USER: "PABLOMANO"
+      SNOWFLAKE_WAREHOUSE: "SZTAB_WH"
+      SNOWFLAKE_DATABASE: "SZTAB_DB"
+      SNOWFLAKE_SCHEMA: "PUBLIC"
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+    readinessProbe:
+      port: 8080
+      path: /
+  endpoints:
+  - name: dashboard
+    port: 8080
+    public: true
