@@ -14,8 +14,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {
   LUBLIN_CENTER,
   LUBELSKIE_BOUNDS,
-  VISTULA_LUBELSKIE,
-  WIEPRZ_LUBELSKIE,
+  ALL_RIVERS,
 } from "@/lib/geo-utils";
 import type { LayerConfig } from "@/types/layer";
 import { GeoJsonLayer } from "./GeoJsonLayer";
@@ -99,18 +98,11 @@ export function DashboardMap({
     if (scenarioZones.length === 0) return null;
     return {
       type: "FeatureCollection" as const,
-      features: [
-        {
-          type: "Feature" as const,
-          properties: { name: "Wisła" },
-          geometry: { type: "LineString" as const, coordinates: VISTULA_LUBELSKIE },
-        },
-        {
-          type: "Feature" as const,
-          properties: { name: "Wieprz" },
-          geometry: { type: "LineString" as const, coordinates: WIEPRZ_LUBELSKIE },
-        },
-      ],
+      features: Object.values(ALL_RIVERS).map((r) => ({
+        type: "Feature" as const,
+        properties: { name: r.name },
+        geometry: { type: "LineString" as const, coordinates: r.coords },
+      })),
     };
   }, [scenarioZones.length]);
 

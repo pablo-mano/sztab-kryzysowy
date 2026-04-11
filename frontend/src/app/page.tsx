@@ -47,8 +47,7 @@ export default function DashboardPage() {
     setHours: scenarioSetHours,
     setWindDirection: scenarioSetWindDirection,
     setWindSpeed: scenarioSetWindSpeed,
-    setWaterLevel: scenarioSetWaterLevel,
-    setRainfallIntensity: scenarioSetRainfallIntensity,
+    setFloodScenarioId: scenarioSetFloodScenario,
     maxHours: scenarioMaxHours,
   } = useScenario();
 
@@ -153,8 +152,7 @@ export default function DashboardPage() {
         onHoursChange={scenarioSetHours}
         onWindDirectionChange={scenarioSetWindDirection}
         onWindSpeedChange={scenarioSetWindSpeed}
-        onWaterLevelChange={scenarioSetWaterLevel}
-        onRainfallIntensityChange={scenarioSetRainfallIntensity}
+        onFloodScenarioChange={scenarioSetFloodScenario}
       />
     </div>
   );

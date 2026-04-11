@@ -1,6 +1,7 @@
 -- ============================================================
--- SEED: Dane demonstracyjne dla scenariusza powodziowego
--- Rzeki, wodowskazy, pomiary poziomu wody
+-- SEED: Dane dla scenariusza powodziowego
+-- Rzeki, wodowskazy z prawdziwymi lokalizacjami IMGW
+-- Źródło: https://danepubliczne.imgw.pl/api/data/hydro/
 -- ============================================================
 
 USE DATABASE SZTAB_DB;
@@ -30,87 +31,60 @@ INSERT INTO raw_rivers (osm_id, name, length_km, geo) VALUES
 );
 
 -- ============================================================
--- 2. WODOWSKAZY — stacje pomiarowe wzdłuż Wisły
+-- 2. WODOWSKAZY — prawdziwe stacje IMGW (współrzędne z API)
+-- Stany alarmowe i ostrzegawcze ze źródeł IMGW / Wody Polskie
 -- ============================================================
 
-INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm) VALUES
-(101, 'Zawichost',       'Wisła',  50.81, 21.86, ST_MAKEPOINT(21.86, 50.81), 700, 500),
-(102, 'Annopol',         'Wisła',  50.92, 21.80, ST_MAKEPOINT(21.80, 50.92), 680, 480),
-(103, 'Kazimierz Dolny', 'Wisła',  51.19, 21.85, ST_MAKEPOINT(21.85, 51.19), 720, 520),
-(104, 'Puławy',          'Wisła',  51.42, 21.97, ST_MAKEPOINT(21.97, 51.42), 750, 530),
-(105, 'Dęblin',          'Wisła',  51.59, 21.82, ST_MAKEPOINT(21.82, 51.59), 700, 500),
-(106, 'Lublin (Wieprz)', 'Wieprz', 51.24, 22.57, ST_MAKEPOINT(22.57, 51.24), 400, 300),
-(107, 'Kośmin',          'Wieprz', 51.15, 22.30, ST_MAKEPOINT(22.30, 51.15), 420, 310),
-(108, 'Łęczna',          'Wieprz', 51.10, 22.92, ST_MAKEPOINT(22.92, 51.10), 380, 280);
+DELETE FROM raw_water_measurements;
+DELETE FROM raw_water_gauges;
+
+-- Wisła (od południa na północ)
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150210150, 'Koło',        'Wisła',  50.5047, 21.5111, ST_MAKEPOINT(21.5111, 50.5047), 500, 400;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150210170, 'Sandomierz',  'Wisła',  50.6725, 21.7461, ST_MAKEPOINT(21.7461, 50.6725), 600, 450;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150210190, 'Zawichost',   'Wisła',  50.8058, 21.8631, ST_MAKEPOINT(21.8631, 50.8058), 620, 520;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150210180, 'Annopol',     'Wisła',  50.8992, 21.8322, ST_MAKEPOINT(21.8322, 50.8992), 550, 500;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 151210190, 'Puławy',      'Wisła',  51.4453, 21.9456, ST_MAKEPOINT(21.9456, 51.4453), 550, 450;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 151210120, 'Dęblin',      'Wisła',  51.5628, 21.8264, ST_MAKEPOINT(21.8264, 51.5628), 500, 400;
+
+-- Wieprz (od źródła do ujścia)
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150230080, 'Michałów',    'Wieprz', 50.7342, 23.0206, ST_MAKEPOINT(23.0206, 50.7342), 200, 150;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150230010, 'Nielisz',     'Wieprz', 50.8086, 23.0411, ST_MAKEPOINT(23.0411, 50.8086), 250, 180;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 150230040, 'Krasnystaw',  'Wieprz', 50.9853, 23.1767, ST_MAKEPOINT(23.1767, 50.9853), 450, 350;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 151230010, 'Trawniki',    'Wieprz', 51.1386, 23.0011, ST_MAKEPOINT(23.0011, 51.1386), 480, 380;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 151220090, 'Lubartów',    'Wieprz', 51.4981, 22.6436, ST_MAKEPOINT(22.6436, 51.4981), 350, 280;
+INSERT INTO raw_water_gauges (station_id, station_name, river_name, latitude, longitude, geo, alarm_level_cm, warning_level_cm)
+  SELECT 151220010, 'Kośmin',      'Wieprz', 51.5731, 22.0014, ST_MAKEPOINT(22.0014, 51.5731), 380, 300;
 
 -- ============================================================
--- 3. POMIARY — 72h serii czasowej (narastający przybór)
--- Generowane: baseline ~300cm, narastanie do poziomu alarmowego
+-- 3. POMIARY — inicjalne dane (nadpisywane przez sync z IMGW API)
+-- Wstawia jeden pomiar na stację z aktualnym timestampem
+-- Prawdziwe wartości przyjdą z /api/imgw-sync
 -- ============================================================
 
--- Zawichost (101) — poziom alarmowy 700cm
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 101,
-       ROUND(300 + (ROW_NUMBER() OVER (ORDER BY seq4()) * 5.5) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(150 + (ROW_NUMBER() OVER (ORDER BY seq4()) * 3), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Annopol (102) — opóźnienie ~3h
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 102,
-       ROUND(290 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 3) * 5.2) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(140 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 3) * 2.8), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Kazimierz Dolny (103) — opóźnienie ~8h
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 103,
-       ROUND(310 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 8) * 5.8) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(160 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 8) * 3.2), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Puławy (104) — opóźnienie ~14h
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 104,
-       ROUND(320 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 14) * 6.0) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(170 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 14) * 3.5), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Dęblin (105) — opóźnienie ~20h
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 105,
-       ROUND(295 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 20) * 5.5) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(145 + (GREATEST(0, ROW_NUMBER() OVER (ORDER BY seq4()) - 20) * 2.9), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Lublin/Wieprz (106) — stabilny, niski poziom
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 106,
-       ROUND(180 + UNIFORM(-15, 15, RANDOM())),
-       ROUND(40 + UNIFORM(-5, 5, RANDOM()), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Kośmin/Wieprz (107) — lekki wzrost
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 107,
-       ROUND(200 + (ROW_NUMBER() OVER (ORDER BY seq4()) * 1.5) + UNIFORM(-10, 10, RANDOM())),
-       ROUND(50 + (ROW_NUMBER() OVER (ORDER BY seq4()) * 0.8), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
-
--- Łęczna/Wieprz (108) — stabilny
-INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time)
-SELECT 108,
-       ROUND(160 + UNIFORM(-10, 10, RANDOM())),
-       ROUND(30 + UNIFORM(-3, 3, RANDOM()), 1),
-       DATEADD(hour, -72 + ROW_NUMBER() OVER (ORDER BY seq4()), CURRENT_TIMESTAMP())
-FROM TABLE(GENERATOR(ROWCOUNT => 72));
+INSERT INTO raw_water_measurements (station_id, water_level_cm, flow_m3s, measure_time) VALUES
+(150210150, 185, 227,  CURRENT_TIMESTAMP()),
+(150210170, 188, 248,  CURRENT_TIMESTAMP()),
+(150210190, 282, 374,  CURRENT_TIMESTAMP()),
+(150210180, 243, 420,  CURRENT_TIMESTAMP()),
+(151210190, 197, 527,  CURRENT_TIMESTAMP()),
+(151210120, 204, 644,  CURRENT_TIMESTAMP()),
+(150230080,  43,   2,  CURRENT_TIMESTAMP()),
+(150230010,  14,   5,  CURRENT_TIMESTAMP()),
+(150230040, 276,  11,  CURRENT_TIMESTAMP()),
+(151230010, 304,  16,  CURRENT_TIMESTAMP()),
+(151220090, 193,  16,  CURRENT_TIMESTAMP()),
+(151220010, 175,  25,  CURRENT_TIMESTAMP());
 
 -- Dodaj indeks H3 do wodowskazów
 UPDATE raw_water_gauges

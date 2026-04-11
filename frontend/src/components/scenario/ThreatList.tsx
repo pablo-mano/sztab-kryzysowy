@@ -18,7 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
   clinic: "przychodnie",
 };
 
-/** Priority order: deep first (most critical), then moderate, then warning */
+/** Priority order: most critical first */
 const ZONE_PRIORITY: Record<string, number> = {
   deep: 0,
   moderate: 1,
@@ -26,6 +26,9 @@ const ZONE_PRIORITY: Record<string, number> = {
   lethal: 0,
   severe: 1,
   irritation: 2,
+  q10: 0,
+  q100: 1,
+  q500: 2,
 };
 
 function formatTypeBreakdown(byType: Record<string, number>): { label: string; count: number }[] {

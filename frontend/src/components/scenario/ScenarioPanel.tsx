@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
 import type { ScenarioType } from "@/types/scenario";
+import type { FloodScenarioId } from "@/lib/scenarios/flood";
 
 interface ScenarioPanelProps {
   state: ScenarioState;
@@ -20,8 +21,7 @@ interface ScenarioPanelProps {
   onHoursChange: (hours: number) => void;
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
-  onWaterLevelChange: (level: number) => void;
-  onRainfallIntensityChange: (intensity: number) => void;
+  onFloodScenarioChange: (id: FloodScenarioId) => void;
 }
 
 export function ScenarioPanel({
@@ -34,8 +34,7 @@ export function ScenarioPanel({
   onHoursChange,
   onWindDirectionChange,
   onWindSpeedChange,
-  onWaterLevelChange,
-  onRainfallIntensityChange,
+  onFloodScenarioChange,
 }: ScenarioPanelProps) {
   if (!state.active) {
     return (
@@ -70,8 +69,8 @@ export function ScenarioPanel({
             <span className="font-medium">Powódź — Dolina Wisły</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Symulacja zalewu doliny Wisły w województwie lubelskim.
-            Analiza zagrożonych obiektów i priorytetyzacja ewakuacji szpitali.
+            Oficjalne strefy zagrożenia powodziowego ISOK.
+            Scenariusze Q 10%, Q 1%, Q 0,2% dla woj. lubelskiego.
           </p>
           <button
             onClick={() => onSelectScenario("flood")}
@@ -93,7 +92,7 @@ export function ScenarioPanel({
       <div className="flex items-center justify-between">
         <h3 className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 ${isToxic ? "text-red-400" : "text-blue-400"}`}>
           {isToxic ? <Flame className="w-3.5 h-3.5" /> : <Droplets className="w-3.5 h-3.5" />}
-          {isToxic ? "Pożar przemysłowy" : "Powódź — Wisła"}
+          {isToxic ? "Pożar przemysłowy" : "Powódź — strefy ISOK"}
         </h3>
         <button
           onClick={onDeactivate}
@@ -104,18 +103,17 @@ export function ScenarioPanel({
         </button>
       </div>
 
-      <TimelineSlider
-        hours={state.hours}
-        maxHours={maxHours}
-        playing={state.playing}
-        onHoursChange={onHoursChange}
-        onTogglePlay={onTogglePlay}
-        onReset={() => onHoursChange(0)}
-      />
-
-      {/* Scenario-specific controls */}
+      {/* Toxic cloud: timeline + wind controls */}
       {isToxic && (
         <>
+          <TimelineSlider
+            hours={state.hours}
+            maxHours={maxHours}
+            playing={state.playing}
+            onHoursChange={onHoursChange}
+            onTogglePlay={onTogglePlay}
+            onReset={() => onHoursChange(0)}
+          />
           <WindIndicator
             direction={state.windDirection}
             speed={state.windSpeed}
@@ -151,12 +149,12 @@ export function ScenarioPanel({
         </>
       )}
 
+      {/* Flood: ISOK scenario selector */}
       {isFlood && (
         <FloodControls
-          waterLevel={state.waterLevel}
-          rainfallIntensity={state.rainfallIntensity}
-          onWaterLevelChange={onWaterLevelChange}
-          onRainfallIntensityChange={onRainfallIntensityChange}
+          selectedScenario={state.floodScenarioId}
+          loading={state.floodLoading}
+          onScenarioChange={onFloodScenarioChange}
         />
       )}
 

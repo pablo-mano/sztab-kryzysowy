@@ -52,6 +52,19 @@ const FIELD_LABELS: Record<string, string> = {
   audio_url: "Nagranie audio",
   image_url: "Zdjęcie",
   id: "ID zgłoszenia",
+  feature_id: "ID strefy",
+  likelihood_description: "Scenariusz",
+  location_name: "Region wodny",
+  return_period_years: "Okres powrotu (lata)",
+  hazard_category: "Kategoria zagrożenia",
+  flood_risk: "Ryzyko powodziowe",
+  distance_to_river_km: "Odl. od rzeki (km)",
+  length_km: "Długość (km)",
+  river_name: "Rzeka",
+  water_level_cm: "Poziom wody (cm)",
+  alarm_level_cm: "Poziom alarmowy (cm)",
+  warning_level_cm: "Poziom ostrzegawczy (cm)",
+  status: "Status",
 };
 
 function formatLabel(key: string): string {

@@ -5,7 +5,7 @@ import {
   generateToxicCloud,
   toxicCloudToScenarioZones,
 } from "@/lib/scenarios/toxic-cloud";
-import { generateFloodZones } from "@/lib/scenarios/flood";
+import { fetchFloodZones, type FloodScenarioId } from "@/lib/scenarios/flood";
 import { PULAWY_CENTER } from "@/lib/geo-utils";
 import type { ScenarioType, ScenarioZone } from "@/types/scenario";
 
@@ -19,8 +19,8 @@ export interface ScenarioState {
   windSpeed: number;
   origin: [number, number];
   // Flood params
-  waterLevel: number;
-  rainfallIntensity: number;
+  floodScenarioId: FloodScenarioId;
+  floodLoading: boolean;
   // Output
   zones: ScenarioZone[];
 }
@@ -28,11 +28,6 @@ export interface ScenarioState {
 const TOXIC_DEFAULTS = {
   windDirection: 270,
   windSpeed: 5,
-};
-
-const FLOOD_DEFAULTS = {
-  waterLevel: 5,
-  rainfallIntensity: 20,
 };
 
 export function useScenario() {
@@ -43,9 +38,44 @@ export function useScenario() {
   const [windDirection, setWindDirection] = useState(TOXIC_DEFAULTS.windDirection);
   const [windSpeed, setWindSpeed] = useState(TOXIC_DEFAULTS.windSpeed);
   const [origin] = useState<[number, number]>(PULAWY_CENTER);
-  const [waterLevel, setWaterLevel] = useState(FLOOD_DEFAULTS.waterLevel);
-  const [rainfallIntensity, setRainfallIntensity] = useState(FLOOD_DEFAULTS.rainfallIntensity);
+
+  // Flood state
+  const [floodScenarioId, setFloodScenarioId] = useState<FloodScenarioId>("q100");
+  const [floodZones, setFloodZones] = useState<ScenarioZone[]>([]);
+  const [floodLoading, setFloodLoading] = useState(false);
+  const floodAbortRef = useRef<AbortController>(null);
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Fetch flood zones when scenario or ID changes
+  useEffect(() => {
+    if (!active || scenarioType !== "flood") {
+      setFloodZones([]);
+      return;
+    }
+
+    if (floodAbortRef.current) floodAbortRef.current.abort();
+    const controller = new AbortController();
+    floodAbortRef.current = controller;
+
+    setFloodLoading(true);
+    fetchFloodZones(floodScenarioId)
+      .then((zones) => {
+        if (!controller.signal.aborted) {
+          setFloodZones(zones);
+          setFloodLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          console.error("Failed to fetch flood zones:", err);
+          setFloodZones([]);
+          setFloodLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [active, scenarioType, floodScenarioId]);
 
   // Generate zones based on scenario type
   const zones: ScenarioZone[] = (() => {
@@ -57,20 +87,20 @@ export function useScenario() {
     }
 
     if (scenarioType === "flood") {
-      return generateFloodZones({ waterLevel, rainfallIntensity, hours });
+      return floodZones;
     }
 
     return [];
   })();
 
-  // Timeline config per scenario
-  const maxHours = scenarioType === "flood" ? 72 : 8;
-  const stepSize = scenarioType === "flood" ? 1 : 0.25;
-  const playInterval = scenarioType === "flood" ? 300 : 500;
+  // Timeline config — only for toxic cloud
+  const maxHours = 8;
+  const stepSize = 0.25;
+  const playInterval = 500;
 
-  // Play/pause animation
+  // Play/pause animation (toxic cloud only)
   useEffect(() => {
-    if (playing && active) {
+    if (playing && active && scenarioType === "toxic-cloud") {
       intervalRef.current = setInterval(() => {
         setHours((h) => {
           if (h >= maxHours) {
@@ -84,7 +114,7 @@ export function useScenario() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [playing, active, maxHours, stepSize, playInterval]);
+  }, [playing, active, scenarioType]);
 
   const selectScenario = useCallback((type: ScenarioType) => {
     setScenarioType(type);
@@ -95,9 +125,7 @@ export function useScenario() {
       setWindSpeed(TOXIC_DEFAULTS.windSpeed);
       setHours(1);
     } else {
-      setWaterLevel(FLOOD_DEFAULTS.waterLevel);
-      setRainfallIntensity(FLOOD_DEFAULTS.rainfallIntensity);
-      setHours(6);
+      setFloodScenarioId("q100");
     }
   }, []);
 
@@ -106,6 +134,7 @@ export function useScenario() {
     setPlaying(false);
     setHours(0);
     setScenarioType(null);
+    setFloodZones([]);
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -121,8 +150,8 @@ export function useScenario() {
       windDirection,
       windSpeed,
       origin,
-      waterLevel,
-      rainfallIntensity,
+      floodScenarioId,
+      floodLoading,
       zones,
     } as ScenarioState,
     selectScenario,
@@ -131,8 +160,7 @@ export function useScenario() {
     setHours,
     setWindDirection,
     setWindSpeed,
-    setWaterLevel,
-    setRainfallIntensity,
+    setFloodScenarioId,
     maxHours,
   };
 }

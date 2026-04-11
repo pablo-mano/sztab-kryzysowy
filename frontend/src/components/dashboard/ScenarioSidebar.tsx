@@ -7,6 +7,7 @@ import { ScenarioPanel } from "@/components/scenario/ScenarioPanel";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
 import type { ScenarioType } from "@/types/scenario";
+import type { FloodScenarioId } from "@/lib/scenarios/flood";
 
 interface ScenarioSidebarProps {
   scenario: ScenarioState;
@@ -18,8 +19,7 @@ interface ScenarioSidebarProps {
   onHoursChange: (hours: number) => void;
   onWindDirectionChange: (deg: number) => void;
   onWindSpeedChange: (speed: number) => void;
-  onWaterLevelChange: (level: number) => void;
-  onRainfallIntensityChange: (intensity: number) => void;
+  onFloodScenarioChange: (id: FloodScenarioId) => void;
 }
 
 export function ScenarioSidebar({
@@ -32,8 +32,7 @@ export function ScenarioSidebar({
   onHoursChange,
   onWindDirectionChange,
   onWindSpeedChange,
-  onWaterLevelChange,
-  onRainfallIntensityChange,
+  onFloodScenarioChange,
 }: ScenarioSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -81,8 +80,7 @@ export function ScenarioSidebar({
             onHoursChange={onHoursChange}
             onWindDirectionChange={onWindDirectionChange}
             onWindSpeedChange={onWindSpeedChange}
-            onWaterLevelChange={onWaterLevelChange}
-            onRainfallIntensityChange={onRainfallIntensityChange}
+            onFloodScenarioChange={onFloodScenarioChange}
           />
         </div>
       </ScrollArea>

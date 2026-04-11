@@ -1,86 +1,91 @@
-import * as turf from "@turf/turf";
-import type { Feature, LineString } from "geojson";
 import type { ScenarioZone } from "@/types/scenario";
-import { VISTULA_LUBELSKIE, WIEPRZ_LUBELSKIE } from "@/lib/geo-utils";
 
-export interface FloodParams {
-  waterLevel: number; // 0-15 meters
-  rainfallIntensity: number; // mm/h
-  hours: number; // 0-72
+export type FloodScenarioId = "q10" | "q100" | "q500";
+
+export interface FloodScenarioOption {
+  id: FloodScenarioId;
+  label: string;
+  description: string;
+  returnPeriodYears: number;
+  color: string;
+  opacity: number;
 }
 
-const FLOOD_ZONES = [
+export const FLOOD_SCENARIOS: FloodScenarioOption[] = [
   {
-    zone: "warning",
-    label: "Strefa ostrzegawcza",
-    description: "Możliwe podtopienia — monitorowanie sytuacji",
-    baseRadius: 3,
-    color: "#38bdf8",
-    opacity: 0.15,
+    id: "q10",
+    label: "Q 10% — raz na 10 lat",
+    description: "Woda stuletnia — częste wezbrania, podtopienia terenów nadrzecznych",
+    returnPeriodYears: 10,
+    color: "#1e40af",
+    opacity: 0.35,
   },
   {
-    zone: "moderate",
-    label: "Strefa zagrożenia",
-    description: "Zalecana ewakuacja obiektów wrażliwych",
-    baseRadius: 1.5,
+    id: "q100",
+    label: "Q 1% — raz na 100 lat",
+    description: "Powódź stuletnia — zalanie szerokich obszarów doliny rzecznej",
+    returnPeriodYears: 100,
     color: "#0891b2",
     opacity: 0.3,
   },
   {
-    zone: "deep",
-    label: "Strefa głębokiego zalania",
-    description: "Natychmiastowa ewakuacja — bezpośrednie zagrożenie życia",
-    baseRadius: 0.5,
-    color: "#1e40af",
-    opacity: 0.4,
+    id: "q500",
+    label: "Q 0,2% — raz na 500 lat",
+    description: "Powódź ekstremalna — maksymalny zasięg zalania wg modelowania ISOK",
+    returnPeriodYears: 500,
+    color: "#38bdf8",
+    opacity: 0.2,
   },
-] as const;
+];
 
-/**
- * Generate flood zones as buffers around the Vistula river line.
- * Zones expand based on water level, rainfall intensity, and time.
- */
-export function generateFloodZones(params: FloodParams): ScenarioZone[] {
-  const { waterLevel, rainfallIntensity, hours } = params;
-
-  if (hours <= 0) return [];
-
-  const vistulaLine: Feature<LineString> = turf.lineString(VISTULA_LUBELSKIE);
-  const wierzLine: Feature<LineString> = turf.lineString(WIEPRZ_LUBELSKIE);
-
-  const waterLevelFactor = waterLevel / 5;
-  const timeFactor = Math.min(1, hours / 24);
-  const rainfallFactor = Math.max(1, rainfallIntensity / 20);
-
-  return FLOOD_ZONES.map(({ zone, label, description, baseRadius, color, opacity }) => {
-    const radius = baseRadius * waterLevelFactor * timeFactor * rainfallFactor;
-    const safeRadius = Math.max(0.1, radius);
-
-    // Buffer both rivers and merge into single zone
-    const vistulaBuffer = turf.buffer(vistulaLine, safeRadius, { units: "kilometers" });
-    // Wieprz gets slightly smaller flood zones (smaller river)
-    const wierzBuffer = turf.buffer(wierzLine, safeRadius * 0.6, { units: "kilometers" });
-
-    const merged = turf.union(
-      turf.featureCollection([vistulaBuffer!, wierzBuffer!]),
-    );
-
-    return {
-      zone,
-      label,
-      description,
-      feature: merged!,
-      color,
-      opacity,
-    };
-  });
+export function getFloodScenario(id: FloodScenarioId): FloodScenarioOption {
+  return FLOOD_SCENARIOS.find((s) => s.id === id)!;
 }
 
 /**
- * Get combined bounding box of all flood zones.
+ * Fetch official ISOK flood hazard zones from Snowflake for a given scenario.
+ * Returns ScenarioZone[] ready for map rendering.
  */
-export function getFloodBounds(zones: ScenarioZone[]) {
-  if (zones.length === 0) return null;
-  const fc = turf.featureCollection(zones.map((z) => z.feature));
-  return turf.bbox(fc);
+export async function fetchFloodZones(scenarioId: FloodScenarioId): Promise<ScenarioZone[]> {
+  const scenario = getFloodScenario(scenarioId);
+
+  const res = await fetch(`/api/flood-zones?scenario=${scenarioId}`);
+  if (!res.ok) throw new Error(`Flood zones API error: ${res.status}`);
+
+  const data = await res.json();
+  const features = data.features ?? [];
+
+  // Each feature from the API becomes a separate zone entry,
+  // but for the ThreatList we merge them into one logical zone per scenario
+  if (features.length === 0) return [];
+
+  // Merge all features into a single FeatureCollection-like MultiPolygon
+  // For map rendering, we pass individual features as a single zone
+  const mergedCoordinates: number[][][][] = [];
+  for (const feat of features) {
+    const geom = feat.geometry;
+    if (geom.type === "Polygon") {
+      mergedCoordinates.push(geom.coordinates);
+    } else if (geom.type === "MultiPolygon") {
+      mergedCoordinates.push(...geom.coordinates);
+    }
+  }
+
+  return [
+    {
+      zone: scenarioId,
+      label: scenario.label,
+      description: scenario.description,
+      feature: {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "MultiPolygon",
+          coordinates: mergedCoordinates,
+        },
+      },
+      color: scenario.color,
+      opacity: scenario.opacity,
+    },
+  ];
 }
