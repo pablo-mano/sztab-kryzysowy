@@ -6,20 +6,32 @@ import { query } from "@/lib/snowflake";
 import { cached } from "@/lib/cache";
 import type { GeoFeatureCollection } from "@/types/feature";
 
+/** Snowflake returns UPPERCASE column names — normalize to lowercase */
+function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(row)) {
+    out[key.toLowerCase()] = value;
+  }
+  return out;
+}
+
 function rowsToGeoJSON(
   rows: Record<string, unknown>[],
   geoColumn?: string,
 ): GeoFeatureCollection {
-  const features = rows.map((row) => {
+  const geoKey = geoColumn?.toLowerCase();
+
+  const features = rows.map((raw) => {
+    const row = normalizeRow(raw);
     let geometry;
     const properties: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(row)) {
-      if (geoColumn && key.toLowerCase() === geoColumn.toLowerCase()) {
+      if (geoKey && key === geoKey) {
         geometry =
           typeof value === "string" ? JSON.parse(value) : value;
       } else if (
-        !geoColumn &&
+        !geoKey &&
         (key === "latitude" || key === "lat") &&
         row["longitude"] !== undefined
       ) {
@@ -30,6 +42,8 @@ function rowsToGeoJSON(
             Number(value),
           ],
         };
+      } else if (key === "latitude" || key === "lat" || key === "longitude" || key === "lon" || key === "ingested_at" || key === "osm_id" || key === "tags" || key === "h3_res7" || key === "h3_res9" || key === "aqi_level" || (!geoKey && key === "geo")) {
+        // skip internal/geo fields from properties
       } else {
         properties[key] = value;
       }
