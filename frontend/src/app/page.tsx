@@ -113,7 +113,7 @@ export default function DashboardPage() {
   const scenarioImpact = useScenarioImpact(scenarioState.zones, scenarioState.scenarioType ?? undefined);
 
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
-  const [mapMode, setMapMode] = useState<MapMode>("h3");
+  const [mapMode, setMapMode] = useState<MapMode>("points");
   const [floodFilterActive, setFloodFilterActive] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
