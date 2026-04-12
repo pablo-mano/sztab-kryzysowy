@@ -177,10 +177,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const handleClearRegion = useCallback(() => {
-    setRegionFilter(null);
-  }, []);
-
   return (
     <div className="flex h-screen w-full overflow-hidden">
       {/* Sidebar — left (layers) */}
@@ -191,7 +187,7 @@ export default function DashboardPage() {
         layerData={layerData}
         onFeatureClick={handleFeatureClick}
         regionFilter={regionFilter}
-        onClearRegion={handleClearRegion}
+        onRegionChange={setRegionFilter}
         mapMode={mapMode}
         onMapModeChange={setMapMode}
       />

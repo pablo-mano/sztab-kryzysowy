@@ -148,7 +148,7 @@ export function LayerPanel({
           }`}
         >
           <Hexagon className="w-3.5 h-3.5" />
-          Analityka H3
+          Widok analityczny
         </button>
         <button
           onClick={() => onMapModeChange("points")}
@@ -159,7 +159,7 @@ export function LayerPanel({
           }`}
         >
           <MapPin className="w-3.5 h-3.5" />
-          Punkty
+          Warstwy
         </button>
       </div>
 

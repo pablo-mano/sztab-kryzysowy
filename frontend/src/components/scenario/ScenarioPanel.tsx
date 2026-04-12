@@ -124,21 +124,12 @@ export function ScenarioPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 ${
-          isToxic ? "text-red-400" : isFlood ? "text-blue-400" : "text-rose-400"
-        }`}>
-          {isToxic ? <Flame className="w-3.5 h-3.5" /> : isFlood ? <Droplets className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
-          {isToxic ? "Chmura toksyczna — Puławy" : isFlood ? "Powódź — strefy ISOK" : "Zgłoszenia cywilne — Na żywo"}
-        </h3>
-        <button
-          onClick={onDeactivate}
-          className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-accent text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Powrót
-        </button>
-      </div>
+      <h3 className={`text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 ${
+        isToxic ? "text-red-400" : isFlood ? "text-blue-400" : "text-rose-400"
+      }`}>
+        {isToxic ? <Flame className="w-3.5 h-3.5" /> : isFlood ? <Droplets className="w-3.5 h-3.5" /> : <Shield className="w-3.5 h-3.5" />}
+        {isToxic ? "Chmura toksyczna — Puławy" : isFlood ? "Powódź — strefy ISOK" : "Zgłoszenia cywilne — Na żywo"}
+      </h3>
 
       {/* Toxic cloud: Gaussian model controls */}
       {isToxic && (

@@ -1,8 +1,34 @@
 "use client";
 
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Popup } from "@vis.gl/react-maplibre";
+import { X } from "lucide-react";
 import { getLayer } from "@/lib/layer-registry";
 import type { GeoFeature } from "@/types/feature";
+
+function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+      <img
+        src={src}
+        alt="Podgląd zgłoszenia"
+        className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body,
+  );
+}
 
 interface FeaturePopupProps {
   feature: GeoFeature;
@@ -79,10 +105,45 @@ export function FeaturePopup({
   lngLat,
   onClose,
 }: FeaturePopupProps) {
-  const layer = getLayer(layerId);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const isScenarioZone = layerId.startsWith("scenario-fill-");
+  const layer = isScenarioZone ? null : getLayer(layerId);
   const properties = feature.properties ?? {};
 
-  const fields = layer?.popupFields ?? Object.keys(properties).slice(0, 6);
+  const fields = layer?.popupFields ?? (isScenarioZone ? [] : Object.keys(properties).slice(0, 6));
+
+  // Scenario zone popup — dedicated layout
+  if (isScenarioZone) {
+    const label = String(properties._zone_label ?? "Strefa");
+    const description = String(properties._zone_description ?? "");
+    const color = String(properties._zone_color ?? "#f43f5e");
+
+    return (
+      <Popup
+        longitude={lngLat[0]}
+        latitude={lngLat[1]}
+        onClose={onClose}
+        closeButton
+        closeOnClick={false}
+        className="[&_.maplibregl-popup-content]:!bg-card [&_.maplibregl-popup-content]:!text-card-foreground [&_.maplibregl-popup-content]:!border [&_.maplibregl-popup-content]:!border-border [&_.maplibregl-popup-content]:!rounded-lg [&_.maplibregl-popup-content]:!shadow-xl [&_.maplibregl-popup-content]:!p-3"
+      >
+        <div className="min-w-[180px] max-w-[280px]">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div
+              className="w-3 h-3 rounded-full shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <span className="text-sm font-bold" style={{ color }}>
+              {label}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {description}
+          </p>
+        </div>
+      </Popup>
+    );
+  }
 
   return (
     <Popup
@@ -113,7 +174,8 @@ export function FeaturePopup({
                 <img
                   src={value as string}
                   alt="Zdjęcie zgłoszenia"
-                  className="w-full max-w-[280px] rounded border border-border"
+                  className="w-full max-w-[280px] rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setLightboxSrc(value as string)}
                 />
               </div>
             );
@@ -140,6 +202,9 @@ export function FeaturePopup({
           );
         })}
       </div>
+      {lightboxSrc && (
+        <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+      )}
     </Popup>
   );
 }

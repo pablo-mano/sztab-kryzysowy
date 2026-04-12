@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, PanelRightClose, PanelRight } from "lucide-react";
+import { AlertTriangle, PanelRightClose, PanelRight, ArrowLeft } from "lucide-react";
 
 import { ScenarioPanel } from "@/components/scenario/ScenarioPanel";
 import type { ScenarioState } from "@/hooks/useScenario";
@@ -75,13 +75,24 @@ export function ScenarioSidebar({
           <AlertTriangle className="w-4 h-4 text-orange-400" />
           <h2 className="text-sm font-semibold tracking-tight">Scenariusze</h2>
         </div>
-        <button
-          onClick={() => setCollapsed(true)}
-          className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title="Zwin panel"
-        >
-          <PanelRightClose className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {scenario.active && (
+            <button
+              onClick={onDeactivate}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-card hover:bg-accent text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Powrót
+            </button>
+          )}
+          <button
+            onClick={() => setCollapsed(true)}
+            className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title="Zwin panel"
+          >
+            <PanelRightClose className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}

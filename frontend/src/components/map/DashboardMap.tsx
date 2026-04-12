@@ -49,11 +49,13 @@ export function DashboardMap({
 
   // Collect interactive layer IDs for click handling
   const interactiveLayerIds = useMemo(
-    () =>
-      visibleLayers
+    () => [
+      ...visibleLayers
         .filter((l) => l.interactive && layerData[l.id])
         .map((l) => l.id),
-    [visibleLayers, layerData],
+      ...scenarioZones.map((z) => `scenario-fill-${z.zone}`),
+    ],
+    [visibleLayers, layerData, scenarioZones],
   );
 
   const handleClick = useCallback(
@@ -169,13 +171,23 @@ export function DashboardMap({
         </Source>
       )}
 
-      {/* Scenario zones (toxic cloud / flood) */}
-      {scenarioZones.map((zone) => (
+      {/* Scenario zones (toxic cloud / flood / civil reports) */}
+      {scenarioZones.map((zone) => {
+        const featureWithProps = {
+          ...zone.feature,
+          properties: {
+            ...zone.feature.properties,
+            _zone_label: zone.label,
+            _zone_description: zone.description,
+            _zone_color: zone.color,
+          },
+        };
+        return (
         <Source
           key={`scenario-${zone.zone}`}
           id={`scenario-${zone.zone}`}
           type="geojson"
-          data={zone.feature}
+          data={featureWithProps}
         >
           <Layer
             id={`scenario-fill-${zone.zone}`}
@@ -196,7 +208,8 @@ export function DashboardMap({
             }}
           />
         </Source>
-      ))}
+        );
+      })}
 
       {popupFeature && (
         <FeaturePopup
