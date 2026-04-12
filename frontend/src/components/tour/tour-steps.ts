@@ -72,7 +72,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Scenariusz: Chmura toksyczna",
     description:
       "Model Gaussowski dyspersji chmury z Zakladow Azotowych Pulawy. Mozesz wybrac substancje (amoniak, chlor, NO\u2082, kwas azotowy), scenariusz uwolnienia, kierunek i predkosc wiatru. System wyznacza 3 strefy zagrozen wedlug progow ERPG i oblicza zagrozenie dla okolicznych obiektow.",
-    placement: "left",
+    placement: "bottom",
     onEnter: (ctx) => ctx.selectScenario("toxic-cloud"),
   },
   {
@@ -81,7 +81,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Scenariusz: Powodz ISOK",
     description:
       "Oficjalne strefy zagrozenia powodziowego z systemu ISOK. Trzy scenariusze: Q 10% (czesta), Q 1% (stuletnia), Q 0,2% (ekstremalna). Mozesz wlaczyc filtr obiektow — wtedy widoczne sa tylko szpitale, szkoly i DPS-y lezace w strefie zalewowej.",
-    placement: "left",
+    placement: "bottom",
     onEnter: (ctx) => {
       ctx.deactivateScenario();
       setTimeout(() => ctx.selectScenario("flood"), 300);
@@ -93,7 +93,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Scenariusz: Zgloszenia cywilne",
     description:
       "Zgloszenia z aplikacji mobilnej CIVIL42 w czasie rzeczywistym. System klasteryzuje ogniska incydentow (promien 1 km), filtruje po czasie (15 min, 1h, 6h) i analizuje zagrozenie dla pobliskich obiektow. Mozesz otworzyc symulator telefonu z aplikacja do zgloszen.",
-    placement: "left",
+    placement: "bottom",
     onEnter: (ctx) => {
       ctx.deactivateScenario();
       setTimeout(() => ctx.selectScenario("civil-reports"), 300);

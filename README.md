@@ -156,4 +156,4 @@ Projekt stworzony na hackathonie **civil42.pl** przez zespol **Sztab Kryzysowy**
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Non-Commercial Open Source License — wolne do użytku niekomercyjnego, modyfikacji i dalszego rozwoju pod warunkiem publicznej dystrybucji. Użycie komercyjne wymaga zgody twórców. Szczegóły w pliku [LICENSE](LICENSE).
