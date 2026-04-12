@@ -2,7 +2,7 @@
 
 Geospatial Decision Support Platform for crisis management in the Lubelskie Voivodeship, Poland.
 
-Built for the **[civil42.pl](https://civil42.pl) hackathon** — special task of the Marshal of the Lubelskie Voivodeship.
+Built for the **[civil42.pl](https://civil42.pl) hackathon** — special task of the Marshal of the Lubelskie Voivodeship based on the [official task brief](zadanie_województwo.pdf).
 
 **Live demo:** [sztab-kryzysowy.vercel.app](https://sztab-kryzysowy.vercel.app)
 
