@@ -178,7 +178,7 @@
         "type": "snowflake",
         "view": "CIVIL42.PUBLIC.REPORTS",
         "sql": "SELECT *, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads', REPLACE(IMAGE_PATH, '@uploads/', ''), 3600) AS image_url, GET_PRESIGNED_URL('@CIVIL42.PUBLIC.uploads_audio', REPLACE(AUDIO_PATH, '@uploads_audio/', ''), 3600) AS audio_url FROM CIVIL42.PUBLIC.REPORTS",
-        "cacheTTL": 10000
+        "cacheTTL": 120000
       },
       "style": {
         "type": "circle",

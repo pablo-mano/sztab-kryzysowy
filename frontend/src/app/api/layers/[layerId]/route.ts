@@ -228,8 +228,12 @@ export async function GET(
       },
     );
 
+    const cacheSecs = Math.floor(layer.source.cacheTTL / 1000);
     return Response.json(geojson, {
-      headers: { "Content-Type": "application/geo+json" },
+      headers: {
+        "Content-Type": "application/geo+json",
+        "Cache-Control": `public, s-maxage=${cacheSecs}, stale-while-revalidate=${Math.floor(cacheSecs / 2)}`,
+      },
     });
   } catch (error) {
     console.error(`Layer ${layerId} fetch error:`, (error as Error).message);

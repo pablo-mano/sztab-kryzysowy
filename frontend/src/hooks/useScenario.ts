@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import useSWR from "swr";
 import {
   generateGaussianZones,
   type ZoneResult,
 } from "@/lib/scenarios/toxic-cloud";
 import { fetchFloodZones, type FloodScenarioId } from "@/lib/scenarios/flood";
 import {
-  fetchCivilReports,
+  parseCivilReports,
   filterByTimeRange,
   clusterReports,
   clustersToZones,
 } from "@/lib/scenarios/civil-reports";
 import { PULAWY_CENTER } from "@/lib/geo-utils";
+import { getLayer } from "@/lib/layer-registry";
 import type {
   ScenarioType,
   ScenarioZone,
@@ -88,10 +90,17 @@ export function useScenario() {
   const floodAbortRef = useRef<AbortController>(null);
 
   // Civil reports state
-  const [civilReports, setCivilReports] = useState<CivilReport[]>([]);
-  const [civilReportsLoading, setCivilReportsLoading] = useState(false);
   const [civilTimeRange, setCivilTimeRange] = useState<number | null>(null);
-  const civilAbortRef = useRef<AbortController>(null);
+
+  const civilLayer = getLayer("civil-reports");
+  const civilRefreshInterval = civilLayer?.source.cacheTTL ?? 120000;
+  const civilSwr = useSWR(
+    active && scenarioType === "civil-reports" ? "/api/layers/civil-reports" : null,
+    (url: string) => fetch(url).then((r) => r.json()),
+    { refreshInterval: civilRefreshInterval, revalidateOnFocus: false, dedupingInterval: civilRefreshInterval },
+  );
+  const civilReports = civilSwr.data ? parseCivilReports(civilSwr.data) : [];
+  const civilReportsLoading = civilSwr.isLoading;
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -131,43 +140,6 @@ export function useScenario() {
 
     return () => controller.abort();
   }, [active, scenarioType, floodScenarioId]);
-
-  // Fetch civil reports when scenario is active, with 10s polling
-  useEffect(() => {
-    if (!active || scenarioType !== "civil-reports") {
-      setCivilReports([]);
-      return;
-    }
-
-    if (civilAbortRef.current) civilAbortRef.current.abort();
-    const controller = new AbortController();
-    civilAbortRef.current = controller;
-
-    const doFetch = () => {
-      setCivilReportsLoading(true);
-      fetchCivilReports()
-        .then((reports) => {
-          if (!controller.signal.aborted) {
-            setCivilReports(reports);
-            setCivilReportsLoading(false);
-          }
-        })
-        .catch((err) => {
-          if (!controller.signal.aborted) {
-            console.error("Failed to fetch civil reports:", err);
-            setCivilReportsLoading(false);
-          }
-        });
-    };
-
-    doFetch();
-    const pollInterval = setInterval(doFetch, 10000);
-
-    return () => {
-      controller.abort();
-      clearInterval(pollInterval);
-    };
-  }, [active, scenarioType]);
 
   // Generate zones based on scenario type
   let zones: ScenarioZone[] = [];
@@ -238,7 +210,6 @@ export function useScenario() {
     setHours(0);
     setScenarioType(null);
     setFloodZones([]);
-    setCivilReports([]);
   }, []);
 
   const togglePlay = useCallback(() => {

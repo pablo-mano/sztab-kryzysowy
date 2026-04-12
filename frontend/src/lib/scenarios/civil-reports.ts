@@ -32,14 +32,10 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** Fetch reports from the existing civil-reports layer endpoint */
-export async function fetchCivilReports(): Promise<CivilReport[]> {
-  const res = await fetch("/api/layers/civil-reports");
-  if (!res.ok) throw new Error(`Civil reports API error: ${res.status}`);
-  const geojson = await res.json();
+/** Parse GeoJSON features into CivilReport objects */
+export function parseCivilReports(geojson: { features?: Array<{ properties: Record<string, unknown>; geometry: { coordinates: [number, number] } }> }): CivilReport[] {
   const features = geojson.features ?? [];
-
-  return features.map((f: { properties: Record<string, unknown>; geometry: { coordinates: [number, number] } }) => ({
+  return features.map((f) => ({
     id: String(f.properties.id ?? ""),
     createdAt: String(f.properties.created_at ?? ""),
     lat: f.geometry.coordinates[1],
@@ -48,6 +44,14 @@ export async function fetchCivilReports(): Promise<CivilReport[]> {
     audioUrl: f.properties.audio_url ? String(f.properties.audio_url) : undefined,
     properties: f.properties,
   }));
+}
+
+/** Fetch reports from the existing civil-reports layer endpoint */
+export async function fetchCivilReports(): Promise<CivilReport[]> {
+  const res = await fetch("/api/layers/civil-reports");
+  if (!res.ok) throw new Error(`Civil reports API error: ${res.status}`);
+  const geojson = await res.json();
+  return parseCivilReports(geojson);
 }
 
 /** Filter reports by time range (minutes from now). null = all. */
