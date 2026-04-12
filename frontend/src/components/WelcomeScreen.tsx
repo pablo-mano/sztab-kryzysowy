@@ -105,10 +105,13 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
           </div>
         )}
 
-        {/* Footer */}
-        <p className="mt-10 text-[10px] text-muted-foreground/40">
-          Geospatial Decision Support Dashboard
-        </p>
+        {/* Attribution */}
+        <div className="mt-10 space-y-1.5 text-[10px] text-muted-foreground/50">
+          <p>Wykonano na zlecenie Marszałka Województwa Lubelskiego</p>
+          <p>
+            Zespół: Paweł Manowiecki, Krzysztof Rzymkowski, Radek Sosnowski, Michał Karpiński
+          </p>
+        </div>
       </div>
     </div>
   );
