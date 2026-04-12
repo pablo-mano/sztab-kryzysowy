@@ -76,6 +76,14 @@ export const TOUR_STEPS: TourStep[] = [
     onEnter: (ctx) => ctx.selectScenario("toxic-cloud"),
   },
   {
+    id: "impact-bar",
+    target: "impact-bar",
+    title: "Pasek analizy wplywu",
+    description:
+      "Automatyczna analiza zagrozen. Pokazuje szacowana liczbe zagrozonych osob i obiektow infrastruktury krytycznej w kazdej strefie. Dane aktualizuja sie w czasie rzeczywistym przy zmianie parametrow scenariusza.",
+    placement: "top",
+  },
+  {
     id: "scenario-flood",
     target: "scenario-panel",
     title: "Scenariusz: Powodz ISOK",
@@ -98,14 +106,6 @@ export const TOUR_STEPS: TourStep[] = [
       ctx.deactivateScenario();
       setTimeout(() => ctx.selectScenario("civil-reports"), 300);
     },
-  },
-  {
-    id: "impact-bar",
-    target: "impact-bar",
-    title: "Pasek analizy wplywu",
-    description:
-      "Automatyczna analiza zagrozen. Pokazuje szacowana liczbe zagrozonych osob i obiektow infrastruktury krytycznej w kazdej strefie. Dane aktualizuja sie w czasie rzeczywistym przy zmianie parametrow scenariusza.",
-    placement: "top",
   },
   {
     id: "summary",
