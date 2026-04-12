@@ -20,13 +20,14 @@ import type { LayerConfig } from "@/types/layer";
 import { GeoJsonLayer } from "./GeoJsonLayer";
 import { FeaturePopup } from "./FeaturePopup";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
-import type { ScenarioZone } from "@/types/scenario";
+import type { ScenarioZone, ScenarioType } from "@/types/scenario";
 
 interface DashboardMapProps {
   visibleLayers: LayerConfig[];
   layerData: Record<string, GeoFeatureCollection | undefined>;
   layerOpacity: Record<string, number>;
   scenarioZones?: ScenarioZone[];
+  scenarioType?: ScenarioType | null;
   mapRef?: React.RefObject<MapRef | null>;
 }
 
@@ -37,6 +38,7 @@ export function DashboardMap({
   layerData,
   layerOpacity,
   scenarioZones = [],
+  scenarioType,
   mapRef: externalMapRef,
 }: DashboardMapProps) {
   const internalMapRef = useRef<MapRef>(null);
@@ -95,9 +97,9 @@ export function DashboardMap({
     setPopupFeature(null);
   }, []);
 
-  // River lines rendered when scenario is active
+  // River lines rendered when flood or toxic scenario is active (not civil-reports)
   const riverGeoJson = useMemo(() => {
-    if (scenarioZones.length === 0) return null;
+    if (scenarioZones.length === 0 || scenarioType === "civil-reports") return null;
     return {
       type: "FeatureCollection" as const,
       features: Object.values(ALL_RIVERS).map((r) => ({

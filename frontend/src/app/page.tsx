@@ -9,6 +9,7 @@ import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
 import { ImpactBar } from "@/components/scenario/ImpactBar";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
+import type { BBox } from "@/hooks/useRegions";
 import { useScenario } from "@/hooks/useScenario";
 import { useScenarioImpact } from "@/hooks/useScenarioImpact";
 import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
@@ -47,6 +48,7 @@ export default function DashboardPage() {
     allLayers,
     layerStates,
     toggleLayer,
+    setLayerVisible,
     setOpacity,
     isVisible,
     getOpacity,
@@ -199,6 +201,7 @@ export default function DashboardPage() {
           layerData={layerData}
           layerOpacity={layerOpacity}
           scenarioZones={scenarioState.zones}
+          scenarioType={scenarioState.scenarioType}
           mapRef={mapRef}
         />
         <MapLegend layers={visibleLayers} />
