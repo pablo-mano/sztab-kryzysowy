@@ -412,7 +412,7 @@ export default function DashboardPage() {
       {!tour.active && !showWelcome && (
         <button
           onClick={() => tour.start()}
-          className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-full bg-rose-500 hover:bg-rose-400 text-white pl-3.5 pr-4 py-2.5 text-sm font-semibold shadow-lg shadow-rose-500/30 transition-all hover:scale-105"
+          className="fixed bottom-12 left-4 z-[9999] flex items-center gap-2 rounded-full bg-rose-500 hover:bg-rose-400 text-white pl-3.5 pr-4 py-2.5 text-sm font-semibold shadow-lg shadow-rose-500/30 transition-all hover:scale-105"
           title="Uruchom przewodnik po aplikacji"
         >
           <BookOpen className="w-4 h-4" />
