@@ -35,6 +35,13 @@ export function useLayers() {
     }));
   }, []);
 
+  const setLayerVisible = useCallback((id: string, visible: boolean) => {
+    setLayerStates((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], visible },
+    }));
+  }, []);
+
   const isVisible = useCallback(
     (id: string) => layerStates[id]?.visible ?? false,
     [layerStates],
@@ -49,6 +56,7 @@ export function useLayers() {
     allLayers,
     layerStates,
     toggleLayer,
+    setLayerVisible,
     setOpacity,
     isVisible,
     getOpacity,

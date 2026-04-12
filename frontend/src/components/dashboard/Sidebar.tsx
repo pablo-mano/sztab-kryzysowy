@@ -9,6 +9,7 @@ import { DataTimestamp } from "./DataTimestamp";
 import type { LayerState } from "@/types/layer";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import type { RegionFilter } from "@/hooks/useLayerData";
+import type { BBox } from "@/hooks/useRegions";
 import type { MapMode } from "@/lib/layer-registry";
 
 interface SidebarProps {
@@ -18,7 +19,7 @@ interface SidebarProps {
   layerData: Record<string, GeoFeatureCollection | undefined>;
   onFeatureClick?: (feature: GeoFeature, layerId: string) => void;
   regionFilter: RegionFilter | null;
-  onRegionChange: (filter: RegionFilter | null) => void;
+  onRegionChange: (filter: RegionFilter | null, bbox?: BBox) => void;
   mapMode: MapMode;
   onMapModeChange: (mode: MapMode) => void;
 }

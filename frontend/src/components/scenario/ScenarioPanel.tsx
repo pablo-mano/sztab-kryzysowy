@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, ArrowLeft, Flame, Droplets, Shield } from "lucide-react";
+import { Play, Flame, Droplets, Shield } from "lucide-react";
 
 import { FloodControls } from "./FloodControls";
 import { ToxicControls } from "./ToxicControls";

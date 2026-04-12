@@ -140,17 +140,6 @@ export function LayerPanel({
       {/* Map mode toggle */}
       <div className="flex rounded-lg border border-border bg-background overflow-hidden">
         <button
-          onClick={() => onMapModeChange("h3")}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
-            mapMode === "h3"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-accent"
-          }`}
-        >
-          <Hexagon className="w-3.5 h-3.5" />
-          Widok analityczny
-        </button>
-        <button
           onClick={() => onMapModeChange("points")}
           className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
             mapMode === "points"
@@ -160,6 +149,17 @@ export function LayerPanel({
         >
           <MapPin className="w-3.5 h-3.5" />
           Warstwy
+        </button>
+        <button
+          onClick={() => onMapModeChange("h3")}
+          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
+            mapMode === "h3"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          }`}
+        >
+          <Hexagon className="w-3.5 h-3.5" />
+          Widok analityczny
         </button>
       </div>
 

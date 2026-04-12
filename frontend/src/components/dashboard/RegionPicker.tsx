@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, ChevronRight, X } from "lucide-react";
-import { useRegions, type RegionOption } from "@/hooks/useRegions";
+import { useRegions, type RegionOption, type BBox } from "@/hooks/useRegions";
 import type { RegionFilter } from "@/hooks/useLayerData";
 
 type Level = "wojewodztwo" | "powiat" | "gmina";
 
 interface RegionPickerProps {
   regionFilter: RegionFilter | null;
-  onRegionChange: (filter: RegionFilter | null) => void;
+  onRegionChange: (filter: RegionFilter | null, bbox?: BBox) => void;
 }
 
 export function RegionPicker({
@@ -93,14 +93,14 @@ export function RegionPicker({
         setSelectedWoj(option);
         setSelectedPowiat(null);
         setSelectedGmina(null);
-        onRegionChange({ name: option.name, level: "wojewodztwo" });
+        onRegionChange({ name: option.name, level: "wojewodztwo" }, option.bbox);
       } else if (level === "powiat") {
         setSelectedPowiat(option);
         setSelectedGmina(null);
-        onRegionChange({ name: option.name, level: "powiat" });
+        onRegionChange({ name: option.name, level: "powiat" }, option.bbox);
       } else {
         setSelectedGmina(option);
-        onRegionChange({ name: option.name, level: "gmina" });
+        onRegionChange({ name: option.name, level: "gmina" }, option.bbox);
       }
     },
     [onRegionChange],

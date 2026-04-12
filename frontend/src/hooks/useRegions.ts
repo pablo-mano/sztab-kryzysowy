@@ -3,10 +3,13 @@
 import { useCallback, useMemo } from "react";
 import useSWR from "swr";
 
+export type BBox = [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+
 export interface RegionOption {
   name: string;
   level: string;
   teryt: string;
+  bbox: BBox;
 }
 
 const fetcher = (url: string) =>
