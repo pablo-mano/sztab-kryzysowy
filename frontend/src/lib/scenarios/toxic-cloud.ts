@@ -216,7 +216,7 @@ function computeZonePolygon(
 
   for (let i = 1; i <= steps; i++) {
     const x = (i / steps) * downwindDistanceM;
-    const halfWidth = 2.0 * sigmaY(Math.max(x, 10), stability);
+    const halfWidth = 6.0 * sigmaY(Math.max(x, 10), stability);
 
     const axisPoint = turf.destination(turf.point(origin), x / 1000, cloudDir, { units: "kilometers" });
     const axisCoords = axisPoint.geometry.coordinates as [number, number];
@@ -280,7 +280,7 @@ export function generateGaussianZones(params: GaussianParams): { zones: Scenario
 
     // Cap at 50km with warning
     const cappedDistance = Math.min(distanceM, 50000);
-    const crosswindM = 2 * sigmaY(cappedDistance, params.stabilityClass);
+    const crosswindM = 2 * 6.0 * sigmaY(cappedDistance, params.stabilityClass);
 
     const feature = computeZonePolygon(
       params.origin, params.windDirection, cappedDistance, params.stabilityClass,
