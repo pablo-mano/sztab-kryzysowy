@@ -7,6 +7,7 @@ import { MapLegend } from "@/components/map/MapLegend";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
 import { ImpactBar } from "@/components/scenario/ImpactBar";
+import { BookOpen } from "lucide-react";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { TourOverlay } from "@/components/tour/TourOverlay";
 import { useTour } from "@/components/tour/useTour";
@@ -405,6 +406,18 @@ export default function DashboardPage() {
       </div>
 
       <TourOverlay tour={tour} />
+
+      {/* Floating tour button — bottom-left */}
+      {!tour.active && !showWelcome && (
+        <button
+          onClick={() => tour.start()}
+          className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-full bg-rose-500 hover:bg-rose-400 text-white pl-3.5 pr-4 py-2.5 text-sm font-semibold shadow-lg shadow-rose-500/30 transition-all hover:scale-105"
+          title="Uruchom przewodnik po aplikacji"
+        >
+          <BookOpen className="w-4 h-4" />
+          Przewodnik
+        </button>
+      )}
 
       {/* Scenario panel — right */}
       <ScenarioSidebar
