@@ -222,6 +222,7 @@ export function useScenario() {
       setFloodScenarioId("q100");
     } else if (type === "civil-reports") {
       setCivilTimeRange(null);
+      setCivilLiveMode(true);
     }
   }, []);
 
@@ -231,6 +232,7 @@ export function useScenario() {
     setHours(0);
     setScenarioType(null);
     setFloodZones([]);
+    setCivilLiveMode(false);
   }, []);
 
   const togglePlay = useCallback(() => {
