@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, X, BookOpen, Sparkles } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ChevronLeft, ChevronRight, X, BookOpen, Sparkles, GripHorizontal } from "lucide-react";
 import type { TourState } from "./useTour";
 import type { TourPlacement } from "./tour-steps";
 
@@ -46,6 +46,10 @@ function getTooltipPosition(
       top = rect.top - tooltipH - pad;
       left = rect.left + rect.width / 2 - tooltipW / 2;
       break;
+    case "fixed-top":
+      top = vh * 0.08;
+      left = vw * 0.5 - tooltipW / 2;
+      break;
     default:
       return null;
   }
@@ -57,10 +61,49 @@ function getTooltipPosition(
   return { top, left };
 }
 
+function useDrag(stepIndex: number) {
+  const [offset, setOffset] = useState<{ x: number; y: number } | null>(null);
+  const dragging = useRef(false);
+  const startPos = useRef({ mouseX: 0, mouseY: 0, elX: 0, elY: 0 });
+
+  // Reset drag offset when step changes
+  useEffect(() => {
+    setOffset(null);
+  }, [stepIndex]);
+
+  const onPointerDown = useCallback((e: React.PointerEvent, currentTop: number, currentLeft: number) => {
+    dragging.current = true;
+    startPos.current = {
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      elX: currentLeft,
+      elY: currentTop,
+    };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - startPos.current.mouseX;
+    const dy = e.clientY - startPos.current.mouseY;
+    setOffset({
+      x: startPos.current.elX + dx,
+      y: startPos.current.elY + dy,
+    });
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    dragging.current = false;
+  }, []);
+
+  return { offset, onPointerDown, onPointerMove, onPointerUp };
+}
+
 export function TourOverlay({ tour }: TourOverlayProps) {
   const { active, currentStep, stepIndex, totalSteps, next, prev, skip } = tour;
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [fadeIn, setFadeIn] = useState(false);
+  const drag = useDrag(stepIndex);
 
   const measureTarget = useCallback(() => {
     if (!currentStep?.target) {
@@ -109,6 +152,7 @@ export function TourOverlay({ tour }: TourOverlayProps) {
   if (!active || !currentStep) return null;
 
   const isCenter = currentStep.placement === "center" || !targetRect;
+  const isFixedTop = currentStep.placement === "fixed-top";
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === totalSteps - 1;
 
@@ -116,12 +160,18 @@ export function TourOverlay({ tour }: TourOverlayProps) {
   const tooltipH = 240;
   const tooltipPos = !isCenter && targetRect
     ? getTooltipPosition(currentStep.placement, targetRect, tooltipW, tooltipH)
-    : null;
+    : isFixedTop
+      ? getTooltipPosition("fixed-top", { top: 0, left: 0, width: 0, height: 0 }, tooltipW, tooltipH)
+      : null;
+
+  // Use drag offset if user dragged, otherwise use calculated position
+  const finalTop = drag.offset ? drag.offset.y : (tooltipPos?.top ?? 0);
+  const finalLeft = drag.offset ? drag.offset.x : (tooltipPos?.left ?? 0);
 
   return (
     <>
       {/* Highlight ring around target element — no blocking overlay */}
-      {!isCenter && targetRect && (
+      {!isCenter && !isFixedTop && targetRect && (
         <div
           className={`fixed rounded-lg pointer-events-none z-[10001] transition-all duration-300 ${
             fadeIn ? "opacity-100" : "opacity-0"
@@ -216,26 +266,34 @@ export function TourOverlay({ tour }: TourOverlayProps) {
             fadeIn ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            top: tooltipPos?.top ?? 0,
-            left: tooltipPos?.left ?? 0,
+            top: finalTop,
+            left: finalLeft,
             width: tooltipW,
           }}
+          onPointerMove={drag.onPointerMove}
+          onPointerUp={drag.onPointerUp}
         >
           <div className="rounded-xl border border-rose-500/30 bg-card p-5 shadow-2xl shadow-rose-500/5">
-            <div className="flex items-center justify-between mb-3">
+            <div
+              className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none"
+              onPointerDown={(e) => drag.onPointerDown(e, finalTop, finalLeft)}
+            >
               <div className="flex items-center gap-2">
                 <div className="flex items-center justify-center w-7 h-7 rounded-md bg-rose-500/20 border border-rose-500/30">
                   <span className="text-xs font-bold text-rose-400">{stepIndex + 1}</span>
                 </div>
                 <h3 className="text-sm font-semibold text-foreground">{currentStep.title}</h3>
               </div>
-              <button
-                onClick={skip}
-                className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                title="Zamknij przewodnik"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <GripHorizontal className="w-4 h-4 text-muted-foreground/40" />
+                <button
+                  onClick={skip}
+                  className="p-1 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                  title="Zamknij przewodnik"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed mb-4">
               {currentStep.description}
