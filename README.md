@@ -8,7 +8,7 @@ Built for the **[civil42.pl](https://civil42.pl) hackathon** — special task of
 
 ---
 
-![Dashboard z warstwami danych i zgłoszeniami cywilnymi](docs/screenshot-dashboard.png)
+![Widok główny — mapa z warstwami danych](docs/01-main-map-layers.png)
 
 ## Overview
 
@@ -26,9 +26,21 @@ Interactive map dashboard for visualizing geospatial data layers, running crisis
 
 ### Screenshots
 
-| Symulacja chmury toksycznej | Scenariusz powodziowy ISOK |
+| Widok analityczny H3 | Scenariusz: Chmura toksyczna |
 |:---:|:---:|
-| ![Toxic cloud](docs/screenshot-toxic.png) | ![Flood scenario](docs/screenshot-flood.png) |
+| ![H3 heatmap](docs/02-h3-heatmap-analytics.png) | ![Toxic cloud](docs/03-scenario-toxic-cloud.png) |
+
+| Scenariusz: Powódź ISOK | Scenariusz: Zgłoszenia cywilne |
+|:---:|:---:|
+| ![Flood](docs/04-scenario-flood-isok.png) | ![Civil reports](docs/05-scenario-civil-reports.png) |
+
+| Symulator aplikacji mobilnej CIVIL42 | Szczegóły zgłoszenia |
+|:---:|:---:|
+| ![Mobile simulator](docs/06-civil42-mobile-simulator.png) | ![Report details](docs/07-civil-report-details.png) |
+
+| Interaktywny przewodnik po aplikacji |
+|:---:|
+| ![Guided tour](docs/08-guided-tour-scenario.png) |
 
 ## Architecture
 
