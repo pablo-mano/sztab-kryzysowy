@@ -38,10 +38,6 @@ Interactive map dashboard for visualizing geospatial data layers, running crisis
 |:---:|:---:|
 | ![Mobile simulator](docs/06-civil42-mobile-simulator.png) | ![Report details](docs/07-civil-report-details.png) |
 
-| Interaktywny przewodnik po aplikacji |
-|:---:|
-| ![Guided tour](docs/08-guided-tour-scenario.png) |
-
 ## Architecture
 
 ```mermaid
