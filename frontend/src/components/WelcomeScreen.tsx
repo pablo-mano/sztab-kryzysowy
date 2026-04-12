@@ -84,18 +84,18 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
         {ready ? (
           <div className="flex flex-col gap-3 w-full max-w-xs animate-in fade-in duration-300">
             <button
-              onClick={handleContinue}
+              onClick={onGuide}
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-semibold px-6 py-3 transition-colors shadow-lg shadow-rose-500/20"
             >
-              Kontynuuj
-              <ArrowRight className="w-4 h-4" />
+              <BookOpen className="w-4 h-4" />
+              Przewodnik po aplikacji
             </button>
             <button
-              onClick={onGuide}
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-foreground font-medium px-6 py-3 transition-colors"
+              onClick={handleContinue}
+              className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"
             >
-              <BookOpen className="w-4 h-4 text-muted-foreground" />
-              Przewodnik po aplikacji
+              Przejdź bezpośrednio do aplikacji
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         ) : (
