@@ -44,23 +44,28 @@ export function ImpactBar({ zones, impact }: ImpactBarProps) {
   return (
     <div className="absolute bottom-3 left-3 right-3 z-20 flex items-stretch gap-2 pointer-events-auto">
       {/* Aggregate */}
-      <div className="rounded-lg border-2 border-red-500/40 bg-gray-900/90 backdrop-blur-sm px-4 py-2.5 flex items-center gap-3 shrink-0">
-        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+      <div className="rounded-lg border-2 border-red-500/40 bg-gray-900/90 backdrop-blur-sm px-4 py-3 flex flex-col justify-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5">
+          <AlertTriangle className="w-4 h-4 text-red-400" />
+          <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">
+            Osoby zagrozone
+          </span>
+        </div>
         {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-xs">Obliczanie...</span>
           </div>
         ) : (
           <>
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-red-300" />
-              <span className="text-lg font-bold text-red-300">
+              <span className="text-xl font-bold text-red-300">
                 ~{totalPeople.toLocaleString("pl-PL")}
               </span>
-              <span className="text-xs text-red-300/60">osob</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-red-300/70" />
+              <Building2 className="w-3.5 h-3.5 text-red-300/70" />
               <span className="text-sm font-semibold text-red-300/70">
                 {totalObjects}
               </span>
@@ -76,38 +81,48 @@ export function ImpactBar({ zones, impact }: ImpactBarProps) {
         return (
           <div
             key={zone.zone}
-            className="rounded-lg border-2 bg-gray-900/90 backdrop-blur-sm px-3 py-2 flex items-center gap-3 min-w-0"
-            style={{
-              borderColor: `${zone.color}60`,
-            }}
+            className="rounded-lg border-2 bg-gray-900/90 backdrop-blur-sm px-3 py-2.5 flex flex-col gap-1 min-w-0 flex-1"
+            style={{ borderColor: `${zone.color}60` }}
           >
-            <div
-              className="w-2.5 h-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: zone.color }}
-            />
-            <span className="text-xs font-semibold truncate" style={{ color: zone.color }}>
-              {zone.label}
-            </span>
+            {/* Line 1: zone name */}
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: zone.color }}
+              />
+              <span className="text-xs font-semibold truncate" style={{ color: zone.color }}>
+                {zone.label}
+              </span>
+            </div>
+
             {stats === undefined ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" style={{ color: zone.color }} />
+              <div className="flex items-center gap-1.5 text-xs" style={{ color: zone.color }}>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Obliczanie...
+              </div>
             ) : (
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="flex items-center gap-1 text-sm font-semibold" style={{ color: zone.color }}>
-                  <Users className="w-3.5 h-3.5" />
-                  ~{stats.totalPopulation.toLocaleString("pl-PL")}
-                </span>
-                <span className="flex items-center gap-1 text-xs" style={{ color: `${zone.color}BB` }}>
-                  <Building2 className="w-3.5 h-3.5" />
-                  {stats.totalObjects}
-                </span>
+              <>
+                {/* Line 2: people count */}
+                <div className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" style={{ color: zone.color }} />
+                  <span className="text-sm font-bold" style={{ color: zone.color }}>
+                    ~{stats.totalPopulation.toLocaleString("pl-PL")} osob
+                  </span>
+                  <span className="text-xs ml-1" style={{ color: `${zone.color}AA` }}>
+                    <Building2 className="w-3 h-3 inline mr-0.5" />
+                    {stats.totalObjects} obiektow
+                  </span>
+                </div>
+
+                {/* Line 3: facility breakdown */}
                 {Object.keys(stats.byType).length > 0 && (
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {Object.entries(stats.byType)
                       .sort(([, a], [, b]) => b - a)
                       .map(([type, count]) => (
                         <span
                           key={type}
-                          className="text-[10px] px-1 py-0.5 rounded"
+                          className="text-[10px] px-1.5 py-0.5 rounded"
                           style={{
                             backgroundColor: `${zone.color}20`,
                             color: zone.color,
@@ -118,7 +133,7 @@ export function ImpactBar({ zones, impact }: ImpactBarProps) {
                       ))}
                   </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         );
