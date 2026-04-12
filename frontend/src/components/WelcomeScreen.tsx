@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Map, BookOpen, ArrowRight, Loader2, Play } from "lucide-react";
+import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor } from "lucide-react";
 
 interface WelcomeScreenProps {
   onContinue: () => void;
@@ -11,6 +11,11 @@ interface WelcomeScreenProps {
 export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
   const [ready, setReady] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
 
   // Simulate minimum loading time so the screen doesn't flash
   useEffect(() => {
@@ -55,63 +60,119 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
           </span>
         </div>
 
-        {/* Description */}
-        <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-md">
-          Inteligentna mapa decyzyjna dla zarządzania kryzysowego.
-          Integracja danych w czasie rzeczywistym z GIOŚ, IMGW, ISOK i CIVIL42
-          z symulacją scenariuszy zagrożeń i automatyczną oceną wpływu na infrastrukturę krytyczną.
-        </p>
+        {isMobile ? (
+          <>
+            {/* Mobile-specific content */}
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 mb-8 max-w-md">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Monitor className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-semibold text-amber-300">
+                  Wersja desktopowa
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Aplikacja jest zoptymalizowana pod ekrany komputerów i&nbsp;laptopów.
+                Wersja mobilna jest w planie rozwoju — do tego czasu
+                zalecamy korzystanie z&nbsp;urządzenia z&nbsp;większym ekranem.
+              </p>
+            </div>
 
-        {/* Feature pills */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {[
-            "Chmura toksyczna",
-            "Powódź ISOK",
-            "Zgłoszenia cywilne",
-            "16 warstw danych",
-            "Analiza wpływu",
-          ].map((f) => (
-            <span
-              key={f}
-              className="text-[11px] font-medium px-3 py-1 rounded-full border border-border bg-card text-muted-foreground"
-            >
-              {f}
-            </span>
-          ))}
-        </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-md">
+              Obejrzyj film demonstracyjny, aby poznać możliwości systemu
+              zarządzania kryzysowego dla Województwa Lubelskiego.
+            </p>
 
-        {/* Buttons */}
-        {ready ? (
-          <div className="flex flex-col gap-3 w-full max-w-xs animate-in fade-in duration-300">
-            <button
-              onClick={onGuide}
-              className="flex items-center justify-center gap-2 w-full rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-semibold px-6 py-3 transition-colors shadow-lg shadow-rose-500/20"
-            >
-              <BookOpen className="w-4 h-4" />
-              Przewodnik po aplikacji
-            </button>
-            <a
-              href="https://youtu.be/kziOB1m4A4I"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 font-medium px-6 py-3 transition-colors"
-            >
-              <Play className="w-4 h-4" />
-              Obejrzyj film demonstracyjny
-            </a>
-            <button
-              onClick={handleContinue}
-              className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"
-            >
-              Przejdź bezpośrednio do aplikacji
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+            {/* Feature pills */}
+            <div className="flex flex-wrap justify-center gap-2 mb-10">
+              {[
+                "Chmura toksyczna",
+                "Powódź ISOK",
+                "Zgłoszenia cywilne",
+                "16 warstw danych",
+                "Analiza wpływu",
+              ].map((f) => (
+                <span
+                  key={f}
+                  className="text-[11px] font-medium px-3 py-1 rounded-full border border-border bg-card text-muted-foreground"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <a
+                href="https://youtu.be/kziOB1m4A4I"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-semibold px-6 py-3 transition-colors shadow-lg shadow-rose-500/20"
+              >
+                <Play className="w-4 h-4" />
+                Obejrzyj film demonstracyjny
+              </a>
+            </div>
+          </>
         ) : (
-          <div className="flex flex-col items-center gap-3 animate-pulse">
-            <Loader2 className="w-6 h-6 text-rose-400 animate-spin" />
-            <span className="text-xs text-muted-foreground">Ładowanie danych...</span>
-          </div>
+          <>
+            {/* Desktop content */}
+            <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-md">
+              Inteligentna mapa decyzyjna dla zarządzania kryzysowego.
+              Integracja danych w czasie rzeczywistym z GIOŚ, IMGW, ISOK i CIVIL42
+              z symulacją scenariuszy zagrożeń i automatyczną oceną wpływu na infrastrukturę krytyczną.
+            </p>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap justify-center gap-2 mb-10">
+              {[
+                "Chmura toksyczna",
+                "Powódź ISOK",
+                "Zgłoszenia cywilne",
+                "16 warstw danych",
+                "Analiza wpływu",
+              ].map((f) => (
+                <span
+                  key={f}
+                  className="text-[11px] font-medium px-3 py-1 rounded-full border border-border bg-card text-muted-foreground"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+
+            {/* Buttons */}
+            {ready ? (
+              <div className="flex flex-col gap-3 w-full max-w-xs animate-in fade-in duration-300">
+                <button
+                  onClick={onGuide}
+                  className="flex items-center justify-center gap-2 w-full rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-semibold px-6 py-3 transition-colors shadow-lg shadow-rose-500/20"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Przewodnik po aplikacji
+                </button>
+                <a
+                  href="https://youtu.be/kziOB1m4A4I"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 font-medium px-6 py-3 transition-colors"
+                >
+                  <Play className="w-4 h-4" />
+                  Obejrzyj film demonstracyjny
+                </a>
+                <button
+                  onClick={handleContinue}
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"
+                >
+                  Przejdź bezpośrednio do aplikacji
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 animate-pulse">
+                <Loader2 className="w-6 h-6 text-rose-400 animate-spin" />
+                <span className="text-xs text-muted-foreground">Ładowanie danych...</span>
+              </div>
+            )}
+          </>
         )}
 
         {/* Attribution */}
