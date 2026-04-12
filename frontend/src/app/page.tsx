@@ -8,6 +8,9 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
 import { ImpactBar } from "@/components/scenario/ImpactBar";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { TourOverlay } from "@/components/tour/TourOverlay";
+import { useTour } from "@/components/tour/useTour";
+import { TOUR_STEPS, type TourContext } from "@/components/tour/tour-steps";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import type { BBox } from "@/hooks/useRegions";
@@ -108,6 +111,12 @@ export default function DashboardPage() {
   } = useScenario();
 
   const scenarioImpact = useScenarioImpact(scenarioState.zones, scenarioState.scenarioType ?? undefined);
+
+  const tourContext: TourContext = useMemo(() => ({
+    selectScenario,
+    deactivateScenario: scenarioDeactivate,
+  }), [selectScenario, scenarioDeactivate]);
+  const tour = useTour(TOUR_STEPS, tourContext);
 
   const [showWelcome, setShowWelcome] = useState(true);
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
@@ -360,8 +369,8 @@ export default function DashboardPage() {
         <WelcomeScreen
           onContinue={() => setShowWelcome(false)}
           onGuide={() => {
-            // TODO: implement guided tour
             setShowWelcome(false);
+            tour.start();
           }}
         />
       )}
@@ -377,10 +386,11 @@ export default function DashboardPage() {
         onRegionChange={handleRegionChange}
         mapMode={mapMode}
         onMapModeChange={setMapMode}
+        onStartTour={() => tour.start()}
       />
 
       {/* Map area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" data-tour="map-area">
         <DashboardMap
           visibleLayers={visibleLayers}
           layerData={layerData}
@@ -393,6 +403,8 @@ export default function DashboardPage() {
         <MapLegend layers={visibleLayers} />
         <ImpactBar zones={scenarioState.zones} impact={scenarioImpact} />
       </div>
+
+      <TourOverlay tour={tour} />
 
       {/* Scenario panel — right */}
       <ScenarioSidebar

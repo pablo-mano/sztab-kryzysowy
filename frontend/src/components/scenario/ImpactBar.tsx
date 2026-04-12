@@ -42,7 +42,7 @@ export function ImpactBar({ zones, impact }: ImpactBarProps) {
   const isLoading = zones.some((z) => impact[z.zone] === undefined);
 
   return (
-    <div className="absolute bottom-3 left-3 right-3 z-20 flex items-stretch gap-2 pointer-events-auto">
+    <div className="absolute bottom-3 left-3 right-3 z-20 flex items-stretch gap-2 pointer-events-auto" data-tour="impact-bar">
       {/* Aggregate */}
       <div className="rounded-lg border-2 border-red-500/40 bg-gray-900/90 backdrop-blur-sm px-4 py-3 flex flex-col justify-center gap-1 shrink-0">
         <div className="flex items-center gap-1.5">

@@ -165,7 +165,7 @@ export function RegionPicker({
   }
 
   return (
-    <div ref={containerRef} className="mx-4 mt-3 relative">
+    <div ref={containerRef} className="mx-4 mt-3 relative" data-tour="region-picker">
       <div
         className={`flex items-center gap-1.5 rounded-md border px-3 py-2 ${
           hasFilter

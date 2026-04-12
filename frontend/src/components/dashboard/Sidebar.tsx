@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeft, BookOpen } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LayerPanel } from "@/components/map/LayerPanel";
 import { RegionPicker } from "./RegionPicker";
@@ -22,6 +22,7 @@ interface SidebarProps {
   onRegionChange: (filter: RegionFilter | null, bbox?: BBox) => void;
   mapMode: MapMode;
   onMapModeChange: (mode: MapMode) => void;
+  onStartTour?: () => void;
 }
 
 export function Sidebar({
@@ -34,6 +35,7 @@ export function Sidebar({
   onRegionChange,
   mapMode,
   onMapModeChange,
+  onStartTour,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -52,7 +54,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="w-[380px] border-r border-border bg-card flex flex-col shrink-0">
+    <aside className="w-[380px] border-r border-border bg-card flex flex-col shrink-0" data-tour="layer-panel">
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div>
@@ -63,13 +65,24 @@ export function Sidebar({
             Geospatial Decision Support
           </p>
         </div>
-        <button
-          onClick={() => setCollapsed(true)}
-          className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title="Zwin panel"
-        >
-          <PanelLeftClose className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onStartTour && (
+            <button
+              onClick={onStartTour}
+              className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              title="Przewodnik po aplikacji"
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            onClick={() => setCollapsed(true)}
+            className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title="Zwin panel"
+          >
+            <PanelLeftClose className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Region picker */}

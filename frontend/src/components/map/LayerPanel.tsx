@@ -138,7 +138,7 @@ export function LayerPanel({
   return (
     <div className="space-y-4">
       {/* Map mode toggle */}
-      <div className="flex rounded-lg border border-border bg-background overflow-hidden">
+      <div className="flex rounded-lg border border-border bg-background overflow-hidden" data-tour="map-mode-toggle">
         <button
           onClick={() => onMapModeChange("points")}
           className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors ${
