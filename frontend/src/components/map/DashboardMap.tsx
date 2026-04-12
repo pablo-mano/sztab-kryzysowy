@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useCallback, useState, useMemo, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import {
   Map,
   NavigationControl,
@@ -19,8 +21,10 @@ import {
 import type { LayerConfig } from "@/types/layer";
 import { GeoJsonLayer } from "./GeoJsonLayer";
 import { FeaturePopup } from "./FeaturePopup";
+import { ReportDetailModal } from "../scenario/ReportDetailModal";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
-import type { ScenarioZone, ScenarioType } from "@/types/scenario";
+import type { ScenarioZone, ScenarioType, CivilReport } from "@/types/scenario";
+import { normalizeUtcDate } from "@/lib/scenarios/civil-reports";
 
 const fitBtnContainerStyle: CSSProperties = {
   position: "absolute",
@@ -71,6 +75,8 @@ export function DashboardMap({
     layerId: string;
     lngLat: [number, number];
   } | null>(null);
+  const [selectedCivilReport, setSelectedCivilReport] = useState<CivilReport | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // Collect interactive layer IDs for click handling
   const interactiveLayerIds = useMemo(
@@ -105,6 +111,24 @@ export function DashboardMap({
         geometry: clickedFeature.geometry,
         properties: clickedFeature.properties ?? {},
       } as GeoFeature;
+
+      // Civil reports — open modal instead of map popup
+      if (layerId === "civil-reports") {
+        const p = feature.properties;
+        const coords = feature.geometry.type === "Point"
+          ? (feature.geometry.coordinates as [number, number])
+          : [e.lngLat.lng, e.lngLat.lat] as [number, number];
+        setSelectedCivilReport({
+          id: String(p.id ?? ""),
+          createdAt: normalizeUtcDate(String(p.created_at ?? "")),
+          lat: coords[1],
+          lon: coords[0],
+          imageUrl: p.image_url ? String(p.image_url) : undefined,
+          audioUrl: p.audio_url ? String(p.audio_url) : undefined,
+          properties: p,
+        });
+        return;
+      }
 
       setPopupFeature({
         feature,
@@ -199,6 +223,7 @@ export function DashboardMap({
   }, [scenarioZones.length]);
 
   return (
+    <>
     <Map
       ref={mapRef}
       initialViewState={{
@@ -360,5 +385,38 @@ export function DashboardMap({
         />
       )}
     </Map>
+
+    {selectedCivilReport && (
+      <ReportDetailModal
+        report={selectedCivilReport}
+        onClose={() => setSelectedCivilReport(null)}
+        onImageClick={(src) => {
+          setSelectedCivilReport(null);
+          setLightboxSrc(src);
+        }}
+      />
+    )}
+
+    {lightboxSrc && createPortal(
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        onClick={() => setLightboxSrc(null)}
+      >
+        <button
+          onClick={() => setLightboxSrc(null)}
+          className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <img
+          src={lightboxSrc}
+          alt="Podgląd zgłoszenia"
+          className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }

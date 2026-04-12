@@ -31,30 +31,32 @@ export async function POST(request: NextRequest) {
     // For flood scenarios, add evacuation priority scoring for hospitals
     const sql = scenarioType === "flood"
       ? `
+        WITH zone AS (SELECT TO_GEOGRAPHY(:1) AS g)
         SELECT
           name,
           amenity_type,
           latitude,
           longitude,
           estimated_population,
-          ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) AS distance_m,
+          ROUND(ST_DISTANCE(p.geo, zone.g)) AS distance_m,
           CASE WHEN amenity_type = 'hospital' THEN
-            COALESCE(estimated_population, 0) * 3 - ROUND(ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) / 100)
+            COALESCE(estimated_population, 0) * 3 - ROUND(ST_DISTANCE(p.geo, zone.g) / 100)
           END AS evacuation_priority
-        FROM raw_osm_pois
-        WHERE ST_WITHIN(geo, TO_GEOGRAPHY(:1))
+        FROM raw_osm_pois p, zone
+        WHERE ST_WITHIN(p.geo, zone.g)
         ORDER BY evacuation_priority DESC NULLS LAST, estimated_population DESC NULLS LAST
       `
       : `
+        WITH zone AS (SELECT TO_GEOGRAPHY(:1) AS g)
         SELECT
           name,
           amenity_type,
           latitude,
           longitude,
           estimated_population,
-          ST_DISTANCE(geo, ST_GEOGRAPHYFROMWKB(ST_ASWKB(TO_GEOGRAPHY(:1)))) AS distance_m
-        FROM raw_osm_pois
-        WHERE ST_WITHIN(geo, TO_GEOGRAPHY(:1))
+          ROUND(ST_DISTANCE(p.geo, zone.g)) AS distance_m
+        FROM raw_osm_pois p, zone
+        WHERE ST_WITHIN(p.geo, zone.g)
         ORDER BY estimated_population DESC NULLS LAST
       `;
 

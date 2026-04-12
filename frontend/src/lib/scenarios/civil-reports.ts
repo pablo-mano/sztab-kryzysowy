@@ -33,7 +33,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
 }
 
 /** Snowflake TIMESTAMP_NTZ comes without timezone — ensure JS treats it as UTC */
-function normalizeUtcDate(dateStr: string): string {
+export function normalizeUtcDate(dateStr: string): string {
   if (!dateStr) return dateStr;
   // Already has timezone info (Z or +/-offset)
   if (/[Z+-]\d{0,4}$/.test(dateStr.trim())) return dateStr;
@@ -150,6 +150,13 @@ function convexHullPolygon(points: [number, number][], bufferKm: number): Featur
   lower.pop();
   upper.pop();
   const hull = [...lower, ...upper];
+
+  // Degenerate hull (collinear points) — fall back to circle
+  if (hull.length < 3) {
+    const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+    const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+    return circlePolygon([cx, cy], bufferKm);
+  }
 
   // Buffer: expand each point outward from centroid
   const cx = hull.reduce((s, p) => s + p[0], 0) / hull.length;
