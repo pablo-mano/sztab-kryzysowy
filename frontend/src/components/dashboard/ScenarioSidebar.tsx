@@ -29,6 +29,7 @@ interface ScenarioSidebarProps {
   floodFilterActive: boolean;
   onFloodFilterToggle: (active: boolean) => void;
   onCivilTimeRangeChange: (minutes: number | null) => void;
+  onCivilLiveModeChange: (live: boolean) => void;
 }
 
 export function ScenarioSidebar({
@@ -50,6 +51,7 @@ export function ScenarioSidebar({
   floodFilterActive,
   onFloodFilterToggle,
   onCivilTimeRangeChange,
+  onCivilLiveModeChange,
 }: ScenarioSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -116,6 +118,7 @@ export function ScenarioSidebar({
           floodFilterActive={floodFilterActive}
           onFloodFilterToggle={onFloodFilterToggle}
           onCivilTimeRangeChange={onCivilTimeRangeChange}
+          onCivilLiveModeChange={onCivilLiveModeChange}
         />
       </div>
     </aside>

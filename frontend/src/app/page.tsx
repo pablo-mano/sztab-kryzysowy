@@ -108,6 +108,7 @@ export default function DashboardPage() {
     setCloudCover: scenarioSetCloudCover,
     setFloodScenarioId: scenarioSetFloodScenario,
     setCivilTimeRange: scenarioSetCivilTimeRange,
+    setCivilLiveMode: scenarioSetCivilLiveMode,
     maxHours: scenarioMaxHours,
   } = useScenario();
 
@@ -439,6 +440,7 @@ export default function DashboardPage() {
         floodFilterActive={floodFilterActive}
         onFloodFilterToggle={setFloodFilterActive}
         onCivilTimeRangeChange={scenarioSetCivilTimeRange}
+        onCivilLiveModeChange={scenarioSetCivilLiveMode}
       />
     </div>
   );

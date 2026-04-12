@@ -32,6 +32,7 @@ interface ScenarioPanelProps {
   floodFilterActive: boolean;
   onFloodFilterToggle: (active: boolean) => void;
   onCivilTimeRangeChange: (minutes: number | null) => void;
+  onCivilLiveModeChange: (live: boolean) => void;
 }
 
 export function ScenarioPanel({
@@ -50,6 +51,7 @@ export function ScenarioPanel({
   floodFilterActive,
   onFloodFilterToggle,
   onCivilTimeRangeChange,
+  onCivilLiveModeChange,
 }: ScenarioPanelProps) {
   if (!state.active) {
     return (
@@ -176,6 +178,8 @@ export function ScenarioPanel({
             reports={filtered}
             clusterCount={clusters.length}
             onTimeRangeChange={onCivilTimeRangeChange}
+            liveMode={state.civilLiveMode}
+            onLiveModeChange={onCivilLiveModeChange}
           />
         );
       })()}

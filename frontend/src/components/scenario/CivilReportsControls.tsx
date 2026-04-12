@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Loader2, Clock, Camera, Mic, X, ChevronRight } from "lucide-react";
+import { Loader2, Clock, Camera, Mic, X, ChevronRight, Play, Pause } from "lucide-react";
 import { TIME_RANGES } from "@/lib/scenarios/civil-reports";
 import { CivilAppLauncher } from "./CivilAppLauncher";
 import { ReportDetailModal } from "./ReportDetailModal";
@@ -14,6 +14,8 @@ interface CivilReportsControlsProps {
   reports: CivilReport[];
   clusterCount: number;
   onTimeRangeChange: (minutes: number | null) => void;
+  liveMode: boolean;
+  onLiveModeChange: (live: boolean) => void;
 }
 
 function formatTime(dateStr: string): string {
@@ -64,6 +66,8 @@ export function CivilReportsControls({
   reports,
   clusterCount,
   onTimeRangeChange,
+  liveMode,
+  onLiveModeChange,
 }: CivilReportsControlsProps) {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<CivilReport | null>(null);
@@ -75,13 +79,38 @@ export function CivilReportsControls({
 
   return (
     <div className="space-y-3">
-      {/* Live indicator */}
+      {/* Live mode toggle */}
       <div className="flex items-center gap-2">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
-        </span>
-        <span className="text-xs font-medium text-green-400">Na żywo</span>
+        <button
+          onClick={() => onLiveModeChange(!liveMode)}
+          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md border text-xs font-medium transition-colors ${
+            liveMode
+              ? "border-green-400/60 bg-green-500/15 text-green-400"
+              : "border-border bg-card text-muted-foreground hover:bg-accent/50"
+          }`}
+        >
+          {liveMode ? (
+            <>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Na żywo
+              <Pause className="w-3 h-3" />
+            </>
+          ) : (
+            <>
+              <span className="relative flex h-2 w-2">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500" />
+              </span>
+              Wstrzymane
+              <Play className="w-3 h-3" />
+            </>
+          )}
+        </button>
+        {liveMode && (
+          <span className="text-[10px] text-muted-foreground">auto-pauza za 3 min</span>
+        )}
         {loading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground ml-auto" />}
       </div>
 

@@ -52,6 +52,7 @@ export interface ScenarioState {
   civilReports: CivilReport[];
   civilReportsLoading: boolean;
   civilTimeRange: number | null;
+  civilLiveMode: boolean;
   // Output
   zones: ScenarioZone[];
 }
@@ -91,16 +92,36 @@ export function useScenario() {
 
   // Civil reports state
   const [civilTimeRange, setCivilTimeRange] = useState<number | null>(null);
+  const [civilLiveMode, setCivilLiveMode] = useState(false);
+  const civilLiveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const CIVIL_LIVE_DURATION_MS = 3 * 60 * 1000; // auto-pause after 3 min
 
   const civilLayer = getLayer("civil-reports");
   const civilRefreshInterval = civilLayer?.source.cacheTTL ?? 120000;
   const civilSwr = useSWR(
     active && scenarioType === "civil-reports" ? "/api/layers/civil-reports" : null,
     (url: string) => fetch(url).then((r) => r.json()),
-    { refreshInterval: civilRefreshInterval, revalidateOnFocus: false, dedupingInterval: civilRefreshInterval },
+    { refreshInterval: civilLiveMode ? civilRefreshInterval : 0, revalidateOnFocus: false, dedupingInterval: civilRefreshInterval },
   );
   const civilReports = civilSwr.data ? parseCivilReports(civilSwr.data) : [];
   const civilReportsLoading = civilSwr.isLoading;
+
+  // Auto-pause live mode after timeout
+  useEffect(() => {
+    if (civilLiveTimerRef.current) {
+      clearTimeout(civilLiveTimerRef.current);
+      civilLiveTimerRef.current = null;
+    }
+    if (civilLiveMode) {
+      civilLiveTimerRef.current = setTimeout(() => {
+        setCivilLiveMode(false);
+      }, CIVIL_LIVE_DURATION_MS);
+    }
+    return () => {
+      if (civilLiveTimerRef.current) clearTimeout(civilLiveTimerRef.current);
+    };
+  }, [civilLiveMode]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -246,6 +267,7 @@ export function useScenario() {
       civilReports,
       civilReportsLoading,
       civilTimeRange,
+      civilLiveMode,
       zones,
     } as ScenarioState,
     selectScenario,
@@ -262,6 +284,7 @@ export function useScenario() {
     setCloudCover,
     setFloodScenarioId,
     setCivilTimeRange,
+    setCivilLiveMode,
     maxHours,
   };
 }
