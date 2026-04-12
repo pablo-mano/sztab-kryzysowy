@@ -5,11 +5,13 @@ import { createPortal } from "react-dom";
 import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor, Images, X, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
 const SCREENSHOTS = [
-  { src: "/screenshots/toxic-cloud.png", label: "Symulacja chmury toksycznej" },
-  { src: "/screenshots/flood.png", label: "Scenariusz powodzi ISOK" },
-  { src: "/screenshots/civil-reports.png", label: "Zgłoszenia cywilne CIVIL42" },
-  { src: "/screenshots/impact-bar.png", label: "Analiza wpływu na infrastrukturę" },
-  { src: "/screenshots/map-layers.png", label: "Warstwy danych na mapie" },
+  { src: "/screenshots/01-main-map-layers.png", label: "Mapa z warstwami danych" },
+  { src: "/screenshots/02-h3-heatmap-analytics.png", label: "Analityka heksagonalna H3" },
+  { src: "/screenshots/03-scenario-toxic-cloud.png", label: "Scenariusz chmury toksycznej" },
+  { src: "/screenshots/04-scenario-flood-isok.png", label: "Scenariusz powodzi ISOK" },
+  { src: "/screenshots/05-scenario-civil-reports.png", label: "Zgłoszenia cywilne CIVIL42" },
+  { src: "/screenshots/06-civil42-mobile-simulator.png", label: "Symulator aplikacji mobilnej" },
+  { src: "/screenshots/07-civil-report-details.png", label: "Szczegóły zgłoszenia cywilnego" },
 ];
 
 interface WelcomeScreenProps {
