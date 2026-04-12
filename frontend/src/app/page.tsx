@@ -7,6 +7,7 @@ import { MapLegend } from "@/components/map/MapLegend";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
 import { ImpactBar } from "@/components/scenario/ImpactBar";
+import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import type { BBox } from "@/hooks/useRegions";
@@ -108,6 +109,7 @@ export default function DashboardPage() {
 
   const scenarioImpact = useScenarioImpact(scenarioState.zones, scenarioState.scenarioType ?? undefined);
 
+  const [showWelcome, setShowWelcome] = useState(true);
   const [regionFilter, setRegionFilter] = useState<RegionFilter | null>(null);
   const [mapMode, setMapMode] = useState<MapMode>("points");
   const [floodFilterActive, setFloodFilterActive] = useState(false);
@@ -354,6 +356,16 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
+      {showWelcome && (
+        <WelcomeScreen
+          onContinue={() => setShowWelcome(false)}
+          onGuide={() => {
+            // TODO: implement guided tour
+            setShowWelcome(false);
+          }}
+        />
+      )}
+
       {/* Sidebar — left (layers) */}
       <Sidebar
         layerStates={layerStates}
