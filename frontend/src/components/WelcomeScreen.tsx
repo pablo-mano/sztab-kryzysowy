@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Map, BookOpen, ArrowRight, Loader2 } from "lucide-react";
+import { Shield, Map, BookOpen, ArrowRight, Loader2, Play } from "lucide-react";
 
 interface WelcomeScreenProps {
   onContinue: () => void;
@@ -90,6 +90,15 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
               <BookOpen className="w-4 h-4" />
               Przewodnik po aplikacji
             </button>
+            <a
+              href="https://youtu.be/kziOB1m4A4I"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 font-medium px-6 py-3 transition-colors"
+            >
+              <Play className="w-4 h-4" />
+              Obejrzyj film demonstracyjny
+            </a>
             <button
               onClick={handleContinue}
               className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"

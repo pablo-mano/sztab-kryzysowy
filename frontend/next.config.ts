@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/video",
-        destination: "https://www.youtube.com/@pablomano/videos",
+        destination: "https://youtu.be/kziOB1m4A4I",
         permanent: false,
       },
     ];
