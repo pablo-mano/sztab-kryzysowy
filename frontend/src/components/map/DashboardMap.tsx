@@ -87,7 +87,16 @@ export function DashboardMap({
     (e: MapLayerMouseEvent) => {
       if (!e.features?.length) return;
 
-      const clickedFeature = e.features[0];
+      // Prioritise points/circles over lines over polygons (fill/fill-extrusion)
+      const priorityOf = (f: (typeof e.features)[number]) => {
+        const t = f.layer?.type;
+        if (t === "circle" || t === "symbol") return 0;
+        if (t === "line") return 1;
+        return 2; // fill, fill-extrusion, scenario zones
+      };
+      const sorted = [...e.features].sort((a, b) => priorityOf(a) - priorityOf(b));
+
+      const clickedFeature = sorted[0];
       const layerId = clickedFeature.layer?.id;
       if (!layerId) return;
 
