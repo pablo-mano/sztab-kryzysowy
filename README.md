@@ -21,7 +21,7 @@ Interactive map dashboard for visualizing geospatial data layers, running crisis
 - **Crisis scenarios** — toxic cloud simulation (Pulawy chemical plant) with wind/time parameters, real-time population impact analysis per threat zone via Snowflake spatial intersection
 - **Flood risk mapping** — ISOK flood zone overlay with Q10/Q100/Q500 return periods and infrastructure impact assessment
 - **Spatial filtering** — click admin boundaries to filter data within a region
-- **AI report classification** — Snowflake Cortex AI automatically classifies civil reports by threat category and severity
+- **AI report processing** — Snowflake Cortex AI pipeline: Stream monitors new reports, AI_TRANSCRIBE converts audio to text, AI_EXTRACT describes photo content, then classifies reports by threat category and severity
 - **Live data refresh** — civil reports update every 10 seconds
 - **Dual map modes** — toggle between point-based and H3 analytical views
 
@@ -46,15 +46,23 @@ flowchart TB
     subgraph sources["External Data Sources"]
         GIOS["GIOS API\nAir Quality"]
         OSM["OpenStreetMap\nPOI Infrastructure"]
-        CIVIL["civil42.pl\nCivil Reports"]
         ISOK["ISOK\nFlood Risk Maps"]
         IMGW["IMGW\nWeather Data"]
+    end
+
+    subgraph civil42["CIVIL42 Mobile App"]
+        APP["civil42.pl\nCivil Reports"]
+        AUDIO["Audio recordings"]
+        PHOTO["Photo attachments"]
     end
 
     subgraph snowflake["Snowflake AI Data Cloud"]
         RAW["Raw Tables\nPOI, air stations, reports"]
         H3["H3 Spatial Index\nHex grid analytics"]
-        AI["Cortex AI\nReport classification"]
+        STREAM["Stream + Task\nChange monitoring job"]
+        TRANSCRIBE["Cortex AI_TRANSCRIBE\nAudio → text"]
+        EXTRACT["Cortex AI_EXTRACT\nImage → description"]
+        CLASSIFY["Cortex AI\nThreat classification"]
         VIEWS["Serving Views\nv_poi, v_h3_risk_score"]
         SPATIAL["Spatial Queries\nST_WITHIN, ST_DISTANCE"]
     end
@@ -77,10 +85,18 @@ flowchart TB
     DEPLOY["Vercel\nEdge deployment"]
 
     sources --> snowflake
+    APP -->|"writes reports"| RAW
+    AUDIO -->|"stored in stage"| STREAM
+    PHOTO -->|"stored in stage"| STREAM
+
+    STREAM -->|"new report detected"| TRANSCRIBE
+    STREAM -->|"new report detected"| EXTRACT
+    TRANSCRIBE --> CLASSIFY
+    EXTRACT --> CLASSIFY
+    CLASSIFY --> VIEWS
+
     RAW --> H3
-    RAW --> AI
     RAW --> VIEWS
-    AI --> VIEWS
     H3 --> VIEWS
     VIEWS --> SPATIAL
 
