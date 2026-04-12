@@ -21,6 +21,7 @@ Interactive map dashboard for visualizing geospatial data layers, running crisis
 - **Crisis scenarios** — toxic cloud simulation (Pulawy chemical plant) with wind/time parameters, real-time population impact analysis per threat zone via Snowflake spatial intersection
 - **Flood risk mapping** — ISOK flood zone overlay with Q10/Q100/Q500 return periods and infrastructure impact assessment
 - **Spatial filtering** — click admin boundaries to filter data within a region
+- **AI report classification** — Snowflake Cortex AI automatically classifies civil reports by threat category and severity
 - **Live data refresh** — civil reports update every 10 seconds
 - **Dual map modes** — toggle between point-based and H3 analytical views
 
@@ -50,9 +51,10 @@ flowchart TB
         IMGW["IMGW\nWeather Data"]
     end
 
-    subgraph snowflake["Snowflake (OLAP)"]
+    subgraph snowflake["Snowflake AI Data Cloud"]
         RAW["Raw Tables\nPOI, air stations, reports"]
         H3["H3 Spatial Index\nHex grid analytics"]
+        AI["Cortex AI\nReport classification"]
         VIEWS["Serving Views\nv_poi, v_h3_risk_score"]
         SPATIAL["Spatial Queries\nST_WITHIN, ST_DISTANCE"]
     end
@@ -76,7 +78,9 @@ flowchart TB
 
     sources --> snowflake
     RAW --> H3
+    RAW --> AI
     RAW --> VIEWS
+    AI --> VIEWS
     H3 --> VIEWS
     VIEWS --> SPATIAL
 
@@ -105,7 +109,7 @@ flowchart TB
 | Frontend | Next.js 16, TypeScript, Tailwind CSS v4, shadcn/ui |
 | Map | MapLibre GL JS via @vis.gl/react-maplibre |
 | Geo | @turf/turf (client-side), Snowflake GEOGRAPHY (server-side) |
-| Data | Snowflake (key-pair JWT auth), H3 spatial indexing |
+| Data | Snowflake AI Data Cloud (key-pair JWT auth), H3 spatial indexing, Cortex AI |
 | Deploy | Vercel |
 
 ## Project Structure
