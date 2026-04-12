@@ -19,6 +19,7 @@ interface CivilReportsControlsProps {
 function formatTime(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleString("pl-PL", {
+    timeZone: "Europe/Warsaw",
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",

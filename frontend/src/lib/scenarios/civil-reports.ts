@@ -32,12 +32,21 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/** Snowflake TIMESTAMP_NTZ comes without timezone — ensure JS treats it as UTC */
+function normalizeUtcDate(dateStr: string): string {
+  if (!dateStr) return dateStr;
+  // Already has timezone info (Z or +/-offset)
+  if (/[Z+-]\d{0,4}$/.test(dateStr.trim())) return dateStr;
+  // Append Z so Date() parses as UTC
+  return dateStr.trim().replace(" ", "T") + "Z";
+}
+
 /** Parse GeoJSON features into CivilReport objects */
 export function parseCivilReports(geojson: { features?: Array<{ properties: Record<string, unknown>; geometry: { coordinates: [number, number] } }> }): CivilReport[] {
   const features = geojson.features ?? [];
   return features.map((f) => ({
     id: String(f.properties.id ?? ""),
-    createdAt: String(f.properties.created_at ?? ""),
+    createdAt: normalizeUtcDate(String(f.properties.created_at ?? "")),
     lat: f.geometry.coordinates[1],
     lon: f.geometry.coordinates[0],
     imageUrl: f.properties.image_url ? String(f.properties.image_url) : undefined,
@@ -205,6 +214,7 @@ function buildClusterDescription(cluster: ReportCluster): string {
     new Date(b.createdAt).getTime() > new Date(a.createdAt).getTime() ? b : a,
   );
   const newestTime = new Date(newest.createdAt).toLocaleString("pl-PL", {
+    timeZone: "Europe/Warsaw",
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",

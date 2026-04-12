@@ -73,6 +73,7 @@ function formatPropertyValue(key: string, value: unknown): string {
   if (key === "created_at" || key.endsWith("_at")) {
     try {
       return new Date(s).toLocaleString("pl-PL", {
+        timeZone: "Europe/Warsaw",
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -221,6 +222,7 @@ export function ReportDetailModal({
                 </div>
                 <div className="text-xs font-medium text-foreground">
                   {new Date(report.createdAt).toLocaleString("pl-PL", {
+                    timeZone: "Europe/Warsaw",
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
