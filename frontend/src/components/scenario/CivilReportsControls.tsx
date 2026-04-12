@@ -1,7 +1,10 @@
 "use client";
 
-import { Loader2, Clock, Camera } from "lucide-react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { Loader2, Clock, Camera, X } from "lucide-react";
 import { TIME_RANGES } from "@/lib/scenarios/civil-reports";
+import { CivilAppLauncher } from "./CivilAppLauncher";
 import type { CivilReport } from "@/types/scenario";
 
 interface CivilReportsControlsProps {
@@ -29,6 +32,8 @@ export function CivilReportsControls({
   clusterCount,
   onTimeRangeChange,
 }: CivilReportsControlsProps) {
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
   const newest = reports.length > 0
     ? [...reports].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
@@ -106,15 +111,13 @@ export function CivilReportsControls({
                   {formatTime(report.createdAt)}
                 </span>
                 {report.imageUrl && (
-                  <a
-                    href={report.imageUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setLightboxSrc(report.imageUrl!)}
                     className="text-rose-400 hover:text-rose-300 transition-colors"
-                    title="Zobacz zdjęcie"
+                    title="Podgląd zdjęcia"
                   >
                     <Camera className="w-3.5 h-3.5" />
-                  </a>
+                  </button>
                 )}
               </div>
             ))}
@@ -128,10 +131,33 @@ export function CivilReportsControls({
         </div>
       )}
 
+      <CivilAppLauncher />
+
       <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
         Dane z niezweryfikowanych zgłoszeń cywilnych via aplikację mobilną CIVIL42.
         Wymagają potwierdzenia przez służby.
       </p>
+
+      {lightboxSrc && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            onClick={() => setLightboxSrc(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={lightboxSrc}
+            alt="Podgląd zgłoszenia"
+            className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
