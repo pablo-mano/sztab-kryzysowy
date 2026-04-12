@@ -68,7 +68,7 @@ export function ScenarioSidebar({
   }
 
   return (
-    <aside className="w-[340px] border-l border-border bg-card flex flex-col shrink-0">
+    <aside className="w-[340px] border-l border-border bg-card flex flex-col shrink-0 min-h-0 overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
