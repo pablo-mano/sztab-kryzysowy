@@ -106,8 +106,10 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
         )}
 
         {/* Attribution */}
-        <div className="mt-10 space-y-1.5 text-[10px] text-muted-foreground/50">
-          <p>Wykonano na zlecenie Marszałka Województwa Lubelskiego</p>
+        <div className="mt-10 space-y-2 text-xs text-muted-foreground">
+          <p className="font-medium">
+            Wykonano na zlecenie Marszałka Województwa Lubelskiego
+          </p>
           <p>
             Zespół: Paweł Manowiecki, Krzysztof Rzymkowski, Radek Sosnowski, Michał Karpiński
           </p>
