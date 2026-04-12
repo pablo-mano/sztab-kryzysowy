@@ -110,7 +110,12 @@ export function FeaturePopup({
   const layer = isScenarioZone ? null : getLayer(layerId);
   const properties = feature.properties ?? {};
 
-  const fields = layer?.popupFields ?? (isScenarioZone ? [] : Object.keys(properties).slice(0, 6));
+  // _all_ sentinel means show all non-internal properties
+  const INTERNAL_KEYS = new Set(["image_path", "audio_path", "ingested_at", "lat", "lon", "latitude", "longitude"]);
+  const rawFields = layer?.popupFields ?? (isScenarioZone ? [] : Object.keys(properties).slice(0, 6));
+  const fields = rawFields.length === 1 && rawFields[0] === "_all_"
+    ? Object.keys(properties).filter((k) => !INTERNAL_KEYS.has(k) && properties[k] != null && String(properties[k]).trim() !== "")
+    : rawFields;
 
   // Scenario zone popup — dedicated layout
   if (isScenarioZone) {
@@ -181,6 +186,20 @@ export function FeaturePopup({
                   className="w-full max-w-[280px] rounded border border-border cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setLightboxSrc(value as string)}
                 />
+              </div>
+            );
+          }
+
+          const isAudioUrl =
+            field === "audio_url" &&
+            typeof value === "string" &&
+            value.startsWith("http");
+
+          if (isAudioUrl) {
+            return (
+              <div key={field} className="space-y-1">
+                <span className="text-xs text-muted-foreground">{formatLabel(field)}</span>
+                <audio controls src={value as string} className="w-full h-8 rounded" />
               </div>
             );
           }

@@ -190,7 +190,7 @@
         }
       },
       "interactive": true,
-      "popupFields": ["created_at", "image_url"],
+      "popupFields": ["_all_"],
       "defaultVisible": true,
       "legend": { "type": "simple", "label": "Zgłoszenia", "color": "#f43f5e" }
     },
