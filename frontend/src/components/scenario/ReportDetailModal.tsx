@@ -31,6 +31,7 @@ const PROPERTY_LABELS: Record<string, string> = {
   severity: "Priorytet",
   reporter_name: "Zgłaszający",
   reporter_phone: "Telefon",
+  audio_text: "Transkrypcja audio",
   address: "Adres",
   city: "Miasto",
   street: "Ulica",
@@ -49,6 +50,7 @@ const HIDDEN_PROPERTIES = new Set([
   "audio_url",
   "image_path",
   "audio_path",
+  "audio_text",
   "lat",
   "lon",
   "ingested_at",
@@ -119,6 +121,7 @@ export function ReportDetailModal({
   const title = props.title ? String(props.title) : undefined;
   const status = props.status ? String(props.status) : undefined;
   const severity = props.severity ? String(props.severity) : undefined;
+  const audioText = props.audio_text ? String(props.audio_text).trim() : undefined;
 
   // Collect remaining properties not shown in the hero section
   const heroKeys = new Set([
@@ -277,6 +280,23 @@ export function ReportDetailModal({
                 src={report.audioUrl}
                 className="w-full h-10 rounded-lg"
               />
+            </div>
+          )}
+
+          {/* Audio transcription */}
+          {audioText && (
+            <div>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Mic className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                  Transkrypcja audio
+                </span>
+              </div>
+              <div className="rounded-lg border border-border bg-accent/20 p-3">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                  {audioText}
+                </p>
+              </div>
             </div>
           )}
 
