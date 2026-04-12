@@ -137,9 +137,13 @@ export function FeaturePopup({
               {label}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            {description}
-          </p>
+          <div className="space-y-0.5">
+            {description.split("\n").map((line, i) => (
+              <p key={i} className="text-xs text-muted-foreground leading-relaxed">
+                {line}
+              </p>
+            ))}
+          </div>
         </div>
       </Popup>
     );

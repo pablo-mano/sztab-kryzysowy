@@ -13,6 +13,8 @@ export interface CivilReport {
   lon: number;
   imageUrl?: string;
   audioUrl?: string;
+  /** All raw properties from the database row */
+  properties: Record<string, unknown>;
 }
 
 export interface ScenarioZone {

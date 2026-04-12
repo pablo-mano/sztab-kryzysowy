@@ -45,10 +45,6 @@ const SCENARIO_LAYERS: Record<string, string[]> = {
   "civil-reports": [
     "admin-wojewodztwo",
     "civil-reports",
-    "poi-hospitals",
-    "poi-schools",
-    "poi-kindergartens",
-    "poi-care-homes",
   ],
 };
 

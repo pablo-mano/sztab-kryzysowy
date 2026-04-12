@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Loader2, Clock, Camera, X } from "lucide-react";
+import { Loader2, Clock, Camera, Mic, X, ChevronRight } from "lucide-react";
 import { TIME_RANGES } from "@/lib/scenarios/civil-reports";
 import { CivilAppLauncher } from "./CivilAppLauncher";
+import { ReportDetailModal } from "./ReportDetailModal";
 import type { CivilReport } from "@/types/scenario";
 
 interface CivilReportsControlsProps {
@@ -25,6 +26,37 @@ function formatTime(dateStr: string): string {
   });
 }
 
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "przed chwilą";
+  if (minutes < 60) return `${minutes} min temu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h temu`;
+  const days = Math.floor(hours / 24);
+  return `${days}d temu`;
+}
+
+function getReportCategory(report: CivilReport): string | undefined {
+  const p = report.properties;
+  return p.category ? String(p.category) : undefined;
+}
+
+function getReportDescription(report: CivilReport): string | undefined {
+  const p = report.properties;
+  return p.description ? String(p.description) : p.title ? String(p.title) : undefined;
+}
+
+function getCategoryBadgeColor(category: string): string {
+  const c = category.toLowerCase();
+  if (c.includes("pożar") || c.includes("fire") || c.includes("pozar")) return "bg-red-500/20 text-red-300 border-red-400/30";
+  if (c.includes("powód") || c.includes("flood") || c.includes("woda")) return "bg-blue-500/20 text-blue-300 border-blue-400/30";
+  if (c.includes("wypad") || c.includes("accident")) return "bg-orange-500/20 text-orange-300 border-orange-400/30";
+  if (c.includes("infra") || c.includes("awaria")) return "bg-yellow-500/20 text-yellow-300 border-yellow-400/30";
+  if (c.includes("medycz") || c.includes("medical")) return "bg-emerald-500/20 text-emerald-300 border-emerald-400/30";
+  return "bg-zinc-500/20 text-zinc-300 border-zinc-400/30";
+}
+
 export function CivilReportsControls({
   selectedTimeRange,
   loading,
@@ -33,6 +65,7 @@ export function CivilReportsControls({
   onTimeRangeChange,
 }: CivilReportsControlsProps) {
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<CivilReport | null>(null);
 
   const newest = reports.length > 0
     ? [...reports].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -101,26 +134,57 @@ export function CivilReportsControls({
             Ostatnie zgłoszenia
           </div>
           <div className="space-y-1.5">
-            {recentFive.map((report) => (
-              <div
-                key={report.id}
-                className="flex items-center gap-2 rounded-md border border-border/50 bg-card/50 p-2"
-              >
-                <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-[11px] text-muted-foreground flex-1">
-                  {formatTime(report.createdAt)}
-                </span>
-                {report.imageUrl && (
-                  <button
-                    onClick={() => setLightboxSrc(report.imageUrl!)}
-                    className="text-rose-400 hover:text-rose-300 transition-colors"
-                    title="Podgląd zdjęcia"
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
+            {recentFive.map((report) => {
+              const category = getReportCategory(report);
+              const description = getReportDescription(report);
+
+              return (
+                <button
+                  key={report.id}
+                  onClick={() => setSelectedReport(report)}
+                  className="w-full text-left flex items-start gap-2 rounded-md border border-border/50 bg-card/50 p-2 hover:bg-accent/30 hover:border-border transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    {/* Top row: time + category */}
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
+                      <span className="text-[11px] text-muted-foreground">
+                        {formatTimeAgo(report.createdAt)}
+                      </span>
+                      {category && (
+                        <span
+                          className={`text-[9px] font-semibold uppercase px-1.5 py-px rounded-full border ${getCategoryBadgeColor(category)}`}
+                        >
+                          {category}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Description preview */}
+                    {description && (
+                      <p className="text-[11px] text-foreground/80 truncate leading-snug">
+                        {description}
+                      </p>
+                    )}
+
+                    {/* Media indicators */}
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground/60 font-mono">
+                        {formatTime(report.createdAt)}
+                      </span>
+                      {report.imageUrl && (
+                        <Camera className="w-3 h-3 text-rose-400/70" />
+                      )}
+                      {report.audioUrl && (
+                        <Mic className="w-3 h-3 text-blue-400/70" />
+                      )}
+                    </div>
+                  </div>
+
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground mt-1 shrink-0 transition-colors" />
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -138,6 +202,19 @@ export function CivilReportsControls({
         Wymagają potwierdzenia przez służby.
       </p>
 
+      {/* Report detail modal */}
+      {selectedReport && (
+        <ReportDetailModal
+          report={selectedReport}
+          onClose={() => setSelectedReport(null)}
+          onImageClick={(src) => {
+            setSelectedReport(null);
+            setLightboxSrc(src);
+          }}
+        />
+      )}
+
+      {/* Image lightbox */}
       {lightboxSrc && createPortal(
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"

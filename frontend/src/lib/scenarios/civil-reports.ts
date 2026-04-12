@@ -46,6 +46,7 @@ export async function fetchCivilReports(): Promise<CivilReport[]> {
     lon: f.geometry.coordinates[0],
     imageUrl: f.properties.image_url ? String(f.properties.image_url) : undefined,
     audioUrl: f.properties.audio_url ? String(f.properties.audio_url) : undefined,
+    properties: f.properties,
   }));
 }
 
@@ -165,6 +166,51 @@ function severityColor(count: number): { color: string; opacity: number } {
   return { color: "#eab308", opacity: 0.25 };
 }
 
+/** Build a richer description for a cluster zone */
+function buildClusterDescription(cluster: ReportCluster): string {
+  const count = cluster.reports.length;
+  const lines: string[] = [`${count} zgłoszeń w promieniu ~1 km`];
+
+  // Collect categories
+  const categories = new Map<string, number>();
+  let withImage = 0;
+  let withAudio = 0;
+
+  for (const r of cluster.reports) {
+    const cat = r.properties.category ? String(r.properties.category) : null;
+    if (cat) categories.set(cat, (categories.get(cat) ?? 0) + 1);
+    if (r.imageUrl) withImage++;
+    if (r.audioUrl) withAudio++;
+  }
+
+  if (categories.size > 0) {
+    const catParts = [...categories.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name, n]) => `${name} (${n})`);
+    lines.push(`Kategorie: ${catParts.join(", ")}`);
+  }
+
+  const mediaParts: string[] = [];
+  if (withImage > 0) mediaParts.push(`${withImage} zdjęć`);
+  if (withAudio > 0) mediaParts.push(`${withAudio} nagrań`);
+  if (mediaParts.length > 0) lines.push(`Media: ${mediaParts.join(", ")}`);
+
+  // Newest report time
+  const newest = cluster.reports.reduce((a, b) =>
+    new Date(b.createdAt).getTime() > new Date(a.createdAt).getTime() ? b : a,
+  );
+  const newestTime = new Date(newest.createdAt).toLocaleString("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+  });
+  lines.push(`Ostatnie: ${newestTime}`);
+
+  return lines.join("\n");
+}
+
 /** Convert clusters to ScenarioZone[] for map rendering and impact calc */
 export function clustersToZones(clusters: ReportCluster[]): ScenarioZone[] {
   // Sort by report count descending
@@ -184,7 +230,7 @@ export function clustersToZones(clusters: ReportCluster[]): ScenarioZone[] {
     return {
       zone: `cluster_${i + 1}`,
       label: `Ognisko #${i + 1}`,
-      description: `${cluster.reports.length} zgłoszeń w promieniu ~1 km`,
+      description: buildClusterDescription(cluster),
       feature,
       color,
       opacity,
