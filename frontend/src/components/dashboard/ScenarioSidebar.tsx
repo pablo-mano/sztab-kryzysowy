@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, PanelRightClose, PanelRight } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { ScenarioPanel } from "@/components/scenario/ScenarioPanel";
 import type { ScenarioState } from "@/hooks/useScenario";
 import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
@@ -85,30 +85,28 @@ export function ScenarioSidebar({
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-4">
-          <ScenarioPanel
-            state={scenario}
-            impact={scenarioImpact}
-            maxHours={maxHours}
-            onSelectScenario={onSelectScenario}
-            onDeactivate={onDeactivate}
-            onTogglePlay={onTogglePlay}
-            onHoursChange={onHoursChange}
-            onWindDirectionChange={onWindDirectionChange}
-            onWindSpeedChange={onWindSpeedChange}
-            onSubstanceChange={onSubstanceChange}
-            onReleaseChange={onReleaseChange}
-            onStabilityChange={onStabilityChange}
-            onStabilityReset={onStabilityReset}
-            onTimeOfDayChange={onTimeOfDayChange}
-            onCloudCoverChange={onCloudCoverChange}
-            onFloodScenarioChange={onFloodScenarioChange}
-            floodFilterActive={floodFilterActive}
-            onFloodFilterToggle={onFloodFilterToggle}
-          />
-        </div>
-      </ScrollArea>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4">
+        <ScenarioPanel
+          state={scenario}
+          impact={scenarioImpact}
+          maxHours={maxHours}
+          onSelectScenario={onSelectScenario}
+          onDeactivate={onDeactivate}
+          onTogglePlay={onTogglePlay}
+          onHoursChange={onHoursChange}
+          onWindDirectionChange={onWindDirectionChange}
+          onWindSpeedChange={onWindSpeedChange}
+          onSubstanceChange={onSubstanceChange}
+          onReleaseChange={onReleaseChange}
+          onStabilityChange={onStabilityChange}
+          onStabilityReset={onStabilityReset}
+          onTimeOfDayChange={onTimeOfDayChange}
+          onCloudCoverChange={onCloudCoverChange}
+          onFloodScenarioChange={onFloodScenarioChange}
+          floodFilterActive={floodFilterActive}
+          onFloodFilterToggle={onFloodFilterToggle}
+        />
+      </div>
     </aside>
   );
 }
