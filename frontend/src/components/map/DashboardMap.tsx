@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useState, useMemo } from "react";
+import { useRef, useCallback, useState, useMemo, type CSSProperties } from "react";
 import {
   Map,
   NavigationControl,
@@ -21,6 +21,27 @@ import { GeoJsonLayer } from "./GeoJsonLayer";
 import { FeaturePopup } from "./FeaturePopup";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 import type { ScenarioZone, ScenarioType } from "@/types/scenario";
+
+const fitBtnContainerStyle: CSSProperties = {
+  position: "absolute",
+  top: 120,
+  right: 10,
+  zIndex: 1,
+};
+
+const fitBtnStyle: CSSProperties = {
+  width: 29,
+  height: 29,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "#fff",
+  border: "none",
+  borderRadius: 4,
+  boxShadow: "0 0 0 2px rgba(0,0,0,.1)",
+  cursor: "pointer",
+  color: "#333",
+};
 
 interface DashboardMapProps {
   visibleLayers: LayerConfig[];
@@ -99,6 +120,62 @@ export function DashboardMap({
     setPopupFeature(null);
   }, []);
 
+  const handleFitAll = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+
+    let minLng = Infinity;
+    let minLat = Infinity;
+    let maxLng = -Infinity;
+    let maxLat = -Infinity;
+    let hasData = false;
+
+    const extend = (lng: number, lat: number) => {
+      minLng = Math.min(minLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLng = Math.max(maxLng, lng);
+      maxLat = Math.max(maxLat, lat);
+      hasData = true;
+    };
+
+    const processCoords = (coords: unknown) => {
+      if (!Array.isArray(coords)) return;
+      if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+        extend(coords[0] as number, coords[1] as number);
+      } else {
+        for (const c of coords) processCoords(c);
+      }
+    };
+
+    // Visible layer data
+    for (const layer of visibleLayers) {
+      const data = layerData[layer.id];
+      if (!data?.features) continue;
+      for (const f of data.features) {
+        if ("coordinates" in f.geometry) processCoords(f.geometry.coordinates);
+      }
+    }
+
+    // Scenario zones
+    for (const zone of scenarioZones) {
+      if ("coordinates" in zone.feature.geometry) processCoords(zone.feature.geometry.coordinates);
+    }
+
+    if (!hasData) {
+      // Fall back to default view
+      map.flyTo({ center: LUBLIN_CENTER, zoom: 7.5, duration: 800 });
+      return;
+    }
+
+    map.fitBounds(
+      [
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ],
+      { padding: 60, duration: 800 },
+    );
+  }, [visibleLayers, layerData, scenarioZones]);
+
   // River lines rendered when flood or toxic scenario is active (not civil-reports)
   const riverGeoJson = useMemo(() => {
     if (scenarioZones.length === 0 || scenarioType === "civil-reports") return null;
@@ -118,7 +195,7 @@ export function DashboardMap({
       initialViewState={{
         longitude: LUBLIN_CENTER[0],
         latitude: LUBLIN_CENTER[1],
-        zoom: 8,
+        zoom: 7.5,
         pitch: 0,
         bearing: 0,
       }}
@@ -134,6 +211,23 @@ export function DashboardMap({
       onMouseLeave={handleMouseLeave}
     >
       <NavigationControl position="top-right" />
+      {/* Fit-all-visible button — sits below NavigationControl */}
+      <div style={fitBtnContainerStyle}>
+        <button
+          onClick={handleFitAll}
+          style={fitBtnStyle}
+          title="Dopasuj widok do wszystkich elementów"
+          aria-label="Dopasuj widok do wszystkich elementów"
+        >
+          {/* expand-arrows icon */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+      </div>
       <ScaleControl position="bottom-left" />
 
       {visibleLayers.map((layer) => {

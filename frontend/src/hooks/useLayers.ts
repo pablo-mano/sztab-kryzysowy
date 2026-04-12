@@ -42,6 +42,24 @@ export function useLayers() {
     }));
   }, []);
 
+  const setVisibilityMap = useCallback((visMap: Record<string, boolean>) => {
+    setLayerStates((prev) => {
+      const next = { ...prev };
+      for (const [id, visible] of Object.entries(visMap)) {
+        if (next[id]) next[id] = { ...next[id], visible };
+      }
+      return next;
+    });
+  }, []);
+
+  const getVisibilitySnapshot = useCallback((): Record<string, boolean> => {
+    const snap: Record<string, boolean> = {};
+    for (const [id, s] of Object.entries(layerStates)) {
+      snap[id] = s.visible;
+    }
+    return snap;
+  }, [layerStates]);
+
   const isVisible = useCallback(
     (id: string) => layerStates[id]?.visible ?? false,
     [layerStates],
@@ -57,6 +75,8 @@ export function useLayers() {
     layerStates,
     toggleLayer,
     setLayerVisible,
+    setVisibilityMap,
+    getVisibilitySnapshot,
     setOpacity,
     isVisible,
     getOpacity,

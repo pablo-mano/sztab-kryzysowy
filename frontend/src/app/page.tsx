@@ -23,6 +23,35 @@ const LEVEL_TO_ADMIN_LAYER: Record<string, string> = {
   gmina: "admin-gminy",
 };
 
+/** Layers relevant for each scenario — only these stay visible during playback. */
+const SCENARIO_LAYERS: Record<string, string[]> = {
+  "toxic-cloud": [
+    "admin-wojewodztwo",
+    "poi-hospitals",
+    "poi-schools",
+    "poi-kindergartens",
+    "poi-care-homes",
+    "env-air-quality",
+  ],
+  flood: [
+    "admin-wojewodztwo",
+    "hydro-rivers",
+    "hydro-gauges",
+    "poi-hospitals",
+    "poi-schools",
+    "poi-kindergartens",
+    "poi-care-homes",
+  ],
+  "civil-reports": [
+    "admin-wojewodztwo",
+    "civil-reports",
+    "poi-hospitals",
+    "poi-schools",
+    "poi-kindergartens",
+    "poi-care-homes",
+  ],
+};
+
 /** Layer IDs that should be filtered by flood scenario */
 const FLOOD_FILTERABLE_LAYERS = new Set([
   "poi-hospitals",
@@ -55,6 +84,8 @@ export default function DashboardPage() {
     layerStates,
     toggleLayer,
     setLayerVisible,
+    setVisibilityMap,
+    getVisibilitySnapshot,
     setOpacity,
     isVisible,
     getOpacity,
@@ -140,12 +171,28 @@ export default function DashboardPage() {
 
   const mapRef = useRef<MapRef>(null);
 
-  // Auto-enable civil-reports layer when scenario activates
+  // Snapshot of layer visibility before scenario activation — used to restore on deactivate
+  const preScenarioVisibility = useRef<Record<string, boolean> | null>(null);
+
+  // Auto-set relevant layers when scenario activates; restore on deactivate
   useEffect(() => {
-    if (scenarioState.active && scenarioState.scenarioType === "civil-reports") {
-      setLayerVisible("civil-reports", true);
+    if (scenarioState.active && scenarioState.scenarioType) {
+      // Save current state only on first activation (not on re-renders)
+      if (!preScenarioVisibility.current) {
+        preScenarioVisibility.current = getVisibilitySnapshot();
+      }
+      const relevant = new Set(SCENARIO_LAYERS[scenarioState.scenarioType] ?? []);
+      const visMap: Record<string, boolean> = {};
+      for (const layer of allLayers) {
+        visMap[layer.id] = relevant.has(layer.id);
+      }
+      setVisibilityMap(visMap);
+    } else if (!scenarioState.active && preScenarioVisibility.current) {
+      // Scenario deactivated — restore saved visibility
+      setVisibilityMap(preScenarioVisibility.current);
+      preScenarioVisibility.current = null;
     }
-  }, [scenarioState.active, scenarioState.scenarioType, setLayerVisible]);
+  }, [scenarioState.active, scenarioState.scenarioType]);
 
   // Auto-flyTo when scenario activates
   useEffect(() => {

@@ -36,7 +36,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "population", "area_km2"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Powiaty", "color": "#4a9eff" }
     },
     {
@@ -56,7 +56,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "teryt", "population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Gminy", "color": "#2a6cb8" }
     },
     {
@@ -75,7 +75,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Szpitale", "color": "#ef4444" }
     },
     {
@@ -94,7 +94,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Szkoły", "color": "#3b82f6" }
     },
     {
@@ -113,7 +113,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Przedszkola", "color": "#8b5cf6" }
     },
     {
@@ -132,7 +132,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "estimated_population"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Domy opieki", "color": "#f59e0b" }
     },
     {
@@ -155,7 +155,7 @@
       },
       "interactive": true,
       "popupFields": ["station_name", "param_code", "value", "aqi_label", "measure_date"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "chart": {
         "type": "timeseries",
         "query": "SELECT measure_date, value FROM raw_gios_measurements WHERE station_id = :id AND param_code = 'PM10' ORDER BY measure_date DESC LIMIT 48",
@@ -191,7 +191,7 @@
       },
       "interactive": true,
       "popupFields": ["created_at", "image_url"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Zgłoszenia", "color": "#f43f5e" }
     },
     {
@@ -294,7 +294,7 @@
       },
       "interactive": true,
       "popupFields": ["name", "length_km"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": { "type": "simple", "label": "Rzeki", "color": "#38bdf8" }
     },
     {
@@ -317,7 +317,7 @@
       },
       "interactive": true,
       "popupFields": ["station_name", "river_name", "water_level_cm", "alarm_level_cm", "warning_level_cm", "status"],
-      "defaultVisible": false,
+      "defaultVisible": true,
       "legend": {
         "type": "categorical",
         "label": "Stan wody",
