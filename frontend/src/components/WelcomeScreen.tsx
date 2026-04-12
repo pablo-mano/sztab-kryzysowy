@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor, Images, X, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+
+const SCREENSHOTS = [
+  { src: "/screenshots/toxic-cloud.png", label: "Symulacja chmury toksycznej" },
+  { src: "/screenshots/flood.png", label: "Scenariusz powodzi ISOK" },
+  { src: "/screenshots/civil-reports.png", label: "Zgłoszenia cywilne CIVIL42" },
+  { src: "/screenshots/impact-bar.png", label: "Analiza wpływu na infrastrukturę" },
+  { src: "/screenshots/map-layers.png", label: "Warstwy danych na mapie" },
+];
 
 interface WelcomeScreenProps {
   onContinue: () => void;
@@ -12,6 +21,8 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
   const [ready, setReady] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
@@ -30,7 +41,7 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[10000] flex items-center justify-center bg-background transition-opacity duration-400 ${
+      className={`fixed inset-0 z-[10000] flex items-center justify-center overflow-y-auto bg-background transition-opacity duration-400 ${
         fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
@@ -40,7 +51,7 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
         backgroundSize: "60px 60px",
       }} />
 
-      <div className="relative flex flex-col items-center text-center px-6 max-w-xl">
+      <div className="relative flex flex-col items-center text-center px-6 max-w-xl py-10 my-auto">
         {/* Icon */}
         <div className="relative mb-6">
           <div className="absolute inset-0 rounded-full bg-rose-500/20 blur-2xl scale-150" />
@@ -110,6 +121,13 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
                 <Play className="w-4 h-4" />
                 Obejrzyj film demonstracyjny
               </a>
+              <button
+                onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
+                className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"
+              >
+                <Images className="w-4 h-4" />
+                Galeria zrzutów ekranu
+              </button>
             </div>
           </>
         ) : (
@@ -185,6 +203,56 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
           </p>
         </div>
       </div>
+
+      {/* Screenshot gallery modal */}
+      {galleryOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[10001] flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setGalleryOpen(false)}
+        >
+          {/* Close */}
+          <button
+            onClick={() => setGalleryOpen(false)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Label */}
+          <div className="text-sm text-white/80 font-medium mb-3 px-4 text-center">
+            {SCREENSHOTS[galleryIndex].label}
+          </div>
+
+          {/* Image */}
+          <div className="flex-1 flex items-center justify-center min-h-0 w-full px-12" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={SCREENSHOTS[galleryIndex].src}
+              alt={SCREENSHOTS[galleryIndex].label}
+              className="max-w-full max-h-[70vh] rounded-lg shadow-2xl object-contain"
+            />
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center gap-4 py-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setGalleryIndex((i) => (i - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
+              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="text-xs text-white/60 font-mono">
+              {galleryIndex + 1} / {SCREENSHOTS.length}
+            </span>
+            <button
+              onClick={() => setGalleryIndex((i) => (i + 1) % SCREENSHOTS.length)}
+              className="p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <ChevronRightIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
