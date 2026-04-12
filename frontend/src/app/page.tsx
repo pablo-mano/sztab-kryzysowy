@@ -171,6 +171,47 @@ export default function DashboardPage() {
 
   const mapRef = useRef<MapRef>(null);
 
+  // Initial fit-all: run once when layer data first loads
+  const didInitialFit = useRef(false);
+  useEffect(() => {
+    if (didInitialFit.current) return;
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Wait until at least a few visible layers have data
+    const loadedCount = visibleLayers.filter((l) => layerData[l.id]?.features?.length).length;
+    if (loadedCount < 2) return;
+
+    let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+    let hasData = false;
+    const extend = (lng: number, lat: number) => {
+      minLng = Math.min(minLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLng = Math.max(maxLng, lng);
+      maxLat = Math.max(maxLat, lat);
+      hasData = true;
+    };
+    const walk = (coords: unknown) => {
+      if (!Array.isArray(coords)) return;
+      if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+        extend(coords[0] as number, coords[1] as number);
+      } else {
+        for (const c of coords) walk(c);
+      }
+    };
+    for (const layer of visibleLayers) {
+      const data = layerData[layer.id];
+      if (!data?.features) continue;
+      for (const f of data.features) {
+        if ("coordinates" in f.geometry) walk(f.geometry.coordinates);
+      }
+    }
+    if (hasData) {
+      map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, duration: 1200 });
+      didInitialFit.current = true;
+    }
+  }, [visibleLayers, layerData]);
+
   // Snapshot of layer visibility before scenario activation — used to restore on deactivate
   const preScenarioVisibility = useRef<Record<string, boolean> | null>(null);
 
@@ -202,6 +243,45 @@ export default function DashboardPage() {
       map.flyTo({ center: PULAWY_CENTER, zoom: 11, duration: 1500 });
     }
   }, [scenarioState.active, scenarioState.scenarioType]);
+
+  // Auto-fitBounds for flood — fit to flood zones when they load
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (
+      scenarioState.active &&
+      scenarioState.scenarioType === "flood" &&
+      scenarioState.zones.length > 0 &&
+      !scenarioState.floodLoading
+    ) {
+      let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+      const extend = (lng: number, lat: number) => {
+        minLng = Math.min(minLng, lng);
+        minLat = Math.min(minLat, lat);
+        maxLng = Math.max(maxLng, lng);
+        maxLat = Math.max(maxLat, lat);
+      };
+      const walk = (coords: unknown) => {
+        if (!Array.isArray(coords)) return;
+        if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+          extend(coords[0] as number, coords[1] as number);
+        } else {
+          for (const c of coords) walk(c);
+        }
+      };
+      for (const zone of scenarioState.zones) {
+        if ("coordinates" in zone.feature.geometry) walk(zone.feature.geometry.coordinates);
+      }
+      if (minLng < Infinity) {
+        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, duration: 1500 });
+      }
+    }
+  }, [
+    scenarioState.active,
+    scenarioState.scenarioType,
+    scenarioState.zones.length,
+    scenarioState.floodLoading,
+  ]);
 
   // Auto-flyTo for civil reports — fit bounds when reports load
   useEffect(() => {
