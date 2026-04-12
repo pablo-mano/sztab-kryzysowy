@@ -17,6 +17,12 @@ import { PULAWY_CENTER } from "@/lib/geo-utils";
 import { computeReportsBounds } from "@/lib/scenarios/civil-reports";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
+const LEVEL_TO_ADMIN_LAYER: Record<string, string> = {
+  wojewodztwo: "admin-wojewodztwo",
+  powiat: "admin-powiaty",
+  gmina: "admin-gminy",
+};
+
 /** Layer IDs that should be filtered by flood scenario */
 const FLOOD_FILTERABLE_LAYERS = new Set([
   "poi-hospitals",
@@ -108,6 +114,19 @@ export default function DashboardPage() {
 
   const layerData = useAllLayerData(layerIds, isEffectivelyVisible, regionFilter, activeFloodFilter);
 
+  // Extract the highlighted region feature for the map overlay
+  const highlightedRegion = useMemo(() => {
+    if (!regionFilter) return null;
+    const adminLayerId = LEVEL_TO_ADMIN_LAYER[regionFilter.level];
+    if (!adminLayerId) return null;
+    const data = layerData[adminLayerId];
+    if (!data) return null;
+    const feature = data.features.find(
+      (f) => f.properties?.name === regionFilter.name,
+    );
+    return feature ?? null;
+  }, [regionFilter, layerData]);
+
   const visibleLayers = useMemo(
     () => allLayers.filter((l) => isEffectivelyVisible(l.id)),
     [allLayers, isEffectivelyVisible],
@@ -120,6 +139,13 @@ export default function DashboardPage() {
   }, [allLayers, getOpacity]);
 
   const mapRef = useRef<MapRef>(null);
+
+  // Auto-enable civil-reports layer when scenario activates
+  useEffect(() => {
+    if (scenarioState.active && scenarioState.scenarioType === "civil-reports") {
+      setLayerVisible("civil-reports", true);
+    }
+  }, [scenarioState.active, scenarioState.scenarioType, setLayerVisible]);
 
   // Auto-flyTo when scenario activates
   useEffect(() => {
@@ -151,6 +177,30 @@ export default function DashboardPage() {
     scenarioState.civilReports.length,
     scenarioState.civilReportsLoading,
   ]);
+
+  const handleRegionChange = useCallback(
+    (filter: RegionFilter | null, bbox?: BBox) => {
+      setRegionFilter(filter);
+
+      if (!filter) return;
+
+      // Enable the admin boundary layer for the selected level
+      const adminLayerId = LEVEL_TO_ADMIN_LAYER[filter.level];
+      if (adminLayerId && !isVisible(adminLayerId)) {
+        setLayerVisible(adminLayerId, true);
+      }
+
+      // Fly to the region's bounding box
+      const map = mapRef.current;
+      if (map && bbox) {
+        map.fitBounds(
+          [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+          { padding: 40, duration: 1200 },
+        );
+      }
+    },
+    [isVisible, setLayerVisible],
+  );
 
   const handleFeatureClick = useCallback((feature: GeoFeature, layerId: string) => {
     const map = mapRef.current;
@@ -189,7 +239,7 @@ export default function DashboardPage() {
         layerData={layerData}
         onFeatureClick={handleFeatureClick}
         regionFilter={regionFilter}
-        onRegionChange={setRegionFilter}
+        onRegionChange={handleRegionChange}
         mapMode={mapMode}
         onMapModeChange={setMapMode}
       />
@@ -202,6 +252,7 @@ export default function DashboardPage() {
           layerOpacity={layerOpacity}
           scenarioZones={scenarioState.zones}
           scenarioType={scenarioState.scenarioType}
+          highlightedRegion={highlightedRegion}
           mapRef={mapRef}
         />
         <MapLegend layers={visibleLayers} />

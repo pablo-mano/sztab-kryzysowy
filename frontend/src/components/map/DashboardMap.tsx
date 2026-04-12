@@ -28,6 +28,7 @@ interface DashboardMapProps {
   layerOpacity: Record<string, number>;
   scenarioZones?: ScenarioZone[];
   scenarioType?: ScenarioType | null;
+  highlightedRegion?: GeoFeature | null;
   mapRef?: React.RefObject<MapRef | null>;
 }
 
@@ -39,6 +40,7 @@ export function DashboardMap({
   layerOpacity,
   scenarioZones = [],
   scenarioType,
+  highlightedRegion,
   mapRef: externalMapRef,
 }: DashboardMapProps) {
   const internalMapRef = useRef<MapRef>(null);
@@ -147,6 +149,39 @@ export function DashboardMap({
           />
         );
       })}
+
+      {/* Highlighted region overlay */}
+      {highlightedRegion && (
+        <Source id="highlight-region" type="geojson" data={highlightedRegion}>
+          <Layer
+            id="highlight-region-fill"
+            type="fill"
+            paint={{
+              "fill-color": "#60a5fa",
+              "fill-opacity": 0.2,
+            }}
+          />
+          <Layer
+            id="highlight-region-line"
+            type="line"
+            paint={{
+              "line-color": "#60a5fa",
+              "line-width": 3,
+              "line-opacity": 0.9,
+            }}
+          />
+          <Layer
+            id="highlight-region-glow"
+            type="line"
+            paint={{
+              "line-color": "#93c5fd",
+              "line-width": 8,
+              "line-opacity": 0.3,
+              "line-blur": 4,
+            }}
+          />
+        </Source>
+      )}
 
       {/* River lines — visible when a scenario is active */}
       {riverGeoJson && (
