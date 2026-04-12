@@ -5,7 +5,7 @@ interface ScenarioRequest {
   cloudGeoJson?: string; // legacy: GeoJSON polygon of the cloud zone
   zoneGeoJson?: string;  // new: GeoJSON polygon of any scenario zone
   zone: string;
-  scenarioType?: "toxic-cloud" | "flood";
+  scenarioType?: "toxic-cloud" | "flood" | "civil-reports";
 }
 
 /** Snowflake returns UPPERCASE column names — normalize to lowercase */

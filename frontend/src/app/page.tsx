@@ -6,12 +6,14 @@ import { DashboardMap } from "@/components/map/DashboardMap";
 import { MapLegend } from "@/components/map/MapLegend";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ScenarioSidebar } from "@/components/dashboard/ScenarioSidebar";
+import { ImpactBar } from "@/components/scenario/ImpactBar";
 import { useLayers } from "@/hooks/useLayers";
 import { useLayerData, type RegionFilter } from "@/hooks/useLayerData";
 import { useScenario } from "@/hooks/useScenario";
 import { useScenarioImpact } from "@/hooks/useScenarioImpact";
 import { isLayerInMode, type MapMode } from "@/lib/layer-registry";
 import { PULAWY_CENTER } from "@/lib/geo-utils";
+import { computeReportsBounds } from "@/lib/scenarios/civil-reports";
 import type { GeoFeature, GeoFeatureCollection } from "@/types/feature";
 
 /** Layer IDs that should be filtered by flood scenario */
@@ -65,6 +67,7 @@ export default function DashboardPage() {
     setTimeOfDay: scenarioSetTimeOfDay,
     setCloudCover: scenarioSetCloudCover,
     setFloodScenarioId: scenarioSetFloodScenario,
+    setCivilTimeRange: scenarioSetCivilTimeRange,
     maxHours: scenarioMaxHours,
   } = useScenario();
 
@@ -125,6 +128,28 @@ export default function DashboardPage() {
     }
   }, [scenarioState.active, scenarioState.scenarioType]);
 
+  // Auto-flyTo for civil reports — fit bounds when reports load
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (
+      scenarioState.active &&
+      scenarioState.scenarioType === "civil-reports" &&
+      scenarioState.civilReports.length > 0 &&
+      !scenarioState.civilReportsLoading
+    ) {
+      const bounds = computeReportsBounds(scenarioState.civilReports);
+      if (bounds) {
+        map.fitBounds(bounds, { padding: 60, duration: 1500 });
+      }
+    }
+  }, [
+    scenarioState.active,
+    scenarioState.scenarioType,
+    scenarioState.civilReports.length,
+    scenarioState.civilReportsLoading,
+  ]);
+
   const handleFeatureClick = useCallback((feature: GeoFeature, layerId: string) => {
     const map = mapRef.current;
     if (!map) return;
@@ -181,12 +206,12 @@ export default function DashboardPage() {
           mapRef={mapRef}
         />
         <MapLegend layers={visibleLayers} />
+        <ImpactBar zones={scenarioState.zones} impact={scenarioImpact} />
       </div>
 
       {/* Scenario panel — right */}
       <ScenarioSidebar
         scenario={scenarioState}
-        scenarioImpact={scenarioImpact}
         maxHours={scenarioMaxHours}
         onSelectScenario={selectScenario}
         onDeactivate={scenarioDeactivate}
@@ -203,6 +228,7 @@ export default function DashboardPage() {
         onFloodScenarioChange={scenarioSetFloodScenario}
         floodFilterActive={floodFilterActive}
         onFloodFilterToggle={setFloodFilterActive}
+        onCivilTimeRangeChange={scenarioSetCivilTimeRange}
       />
     </div>
   );

@@ -6,10 +6,17 @@ import {
   type ZoneResult,
 } from "@/lib/scenarios/toxic-cloud";
 import { fetchFloodZones, type FloodScenarioId } from "@/lib/scenarios/flood";
+import {
+  fetchCivilReports,
+  filterByTimeRange,
+  clusterReports,
+  clustersToZones,
+} from "@/lib/scenarios/civil-reports";
 import { PULAWY_CENTER } from "@/lib/geo-utils";
 import type {
   ScenarioType,
   ScenarioZone,
+  CivilReport,
   SubstanceId,
   ReleaseScenarioId,
   StabilityClass,
@@ -39,6 +46,10 @@ export interface ScenarioState {
   // Flood params
   floodScenarioId: FloodScenarioId;
   floodLoading: boolean;
+  // Civil reports params
+  civilReports: CivilReport[];
+  civilReportsLoading: boolean;
+  civilTimeRange: number | null;
   // Output
   zones: ScenarioZone[];
 }
@@ -75,6 +86,12 @@ export function useScenario() {
   const [floodZones, setFloodZones] = useState<ScenarioZone[]>([]);
   const [floodLoading, setFloodLoading] = useState(false);
   const floodAbortRef = useRef<AbortController>(null);
+
+  // Civil reports state
+  const [civilReports, setCivilReports] = useState<CivilReport[]>([]);
+  const [civilReportsLoading, setCivilReportsLoading] = useState(false);
+  const [civilTimeRange, setCivilTimeRange] = useState<number | null>(null);
+  const civilAbortRef = useRef<AbortController>(null);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -115,6 +132,43 @@ export function useScenario() {
     return () => controller.abort();
   }, [active, scenarioType, floodScenarioId]);
 
+  // Fetch civil reports when scenario is active, with 10s polling
+  useEffect(() => {
+    if (!active || scenarioType !== "civil-reports") {
+      setCivilReports([]);
+      return;
+    }
+
+    if (civilAbortRef.current) civilAbortRef.current.abort();
+    const controller = new AbortController();
+    civilAbortRef.current = controller;
+
+    const doFetch = () => {
+      setCivilReportsLoading(true);
+      fetchCivilReports()
+        .then((reports) => {
+          if (!controller.signal.aborted) {
+            setCivilReports(reports);
+            setCivilReportsLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (!controller.signal.aborted) {
+            console.error("Failed to fetch civil reports:", err);
+            setCivilReportsLoading(false);
+          }
+        });
+    };
+
+    doFetch();
+    const pollInterval = setInterval(doFetch, 10000);
+
+    return () => {
+      controller.abort();
+      clearInterval(pollInterval);
+    };
+  }, [active, scenarioType]);
+
   // Generate zones based on scenario type
   let zones: ScenarioZone[] = [];
   let zoneResults: ZoneResult[] = [];
@@ -128,6 +182,10 @@ export function useScenario() {
     zoneResults = result.results;
   } else if (active && scenarioType === "flood") {
     zones = floodZones;
+  } else if (active && scenarioType === "civil-reports") {
+    const filtered = filterByTimeRange(civilReports, civilTimeRange);
+    const clusters = clusterReports(filtered);
+    zones = clustersToZones(clusters);
   }
 
   // Timeline config — only for toxic cloud (kept for legacy, but no longer animated)
@@ -167,8 +225,10 @@ export function useScenario() {
       setCloudCover(TOXIC_DEFAULTS.cloudCover);
       setStabilityOverride(false);
       setHours(1);
-    } else {
+    } else if (type === "flood") {
       setFloodScenarioId("q100");
+    } else if (type === "civil-reports") {
+      setCivilTimeRange(null);
     }
   }, []);
 
@@ -178,6 +238,7 @@ export function useScenario() {
     setHours(0);
     setScenarioType(null);
     setFloodZones([]);
+    setCivilReports([]);
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -211,6 +272,9 @@ export function useScenario() {
       zoneResults,
       floodScenarioId,
       floodLoading,
+      civilReports,
+      civilReportsLoading,
+      civilTimeRange,
       zones,
     } as ScenarioState,
     selectScenario,
@@ -226,6 +290,7 @@ export function useScenario() {
     setTimeOfDay,
     setCloudCover,
     setFloodScenarioId,
+    setCivilTimeRange,
     maxHours,
   };
 }

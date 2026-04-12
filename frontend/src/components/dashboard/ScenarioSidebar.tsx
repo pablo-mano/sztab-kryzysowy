@@ -5,14 +5,13 @@ import { AlertTriangle, PanelRightClose, PanelRight } from "lucide-react";
 
 import { ScenarioPanel } from "@/components/scenario/ScenarioPanel";
 import type { ScenarioState } from "@/hooks/useScenario";
-import type { ScenarioImpact } from "@/hooks/useScenarioImpact";
+
 import type { ScenarioType, SubstanceId, ReleaseScenarioId, StabilityClass } from "@/types/scenario";
 import type { FloodScenarioId } from "@/lib/scenarios/flood";
 import type { TimeOfDay, CloudCover } from "@/lib/scenarios/toxic-cloud";
 
 interface ScenarioSidebarProps {
   scenario: ScenarioState;
-  scenarioImpact: ScenarioImpact;
   maxHours: number;
   onSelectScenario: (type: ScenarioType) => void;
   onDeactivate: () => void;
@@ -29,11 +28,11 @@ interface ScenarioSidebarProps {
   onFloodScenarioChange: (id: FloodScenarioId) => void;
   floodFilterActive: boolean;
   onFloodFilterToggle: (active: boolean) => void;
+  onCivilTimeRangeChange: (minutes: number | null) => void;
 }
 
 export function ScenarioSidebar({
   scenario,
-  scenarioImpact,
   maxHours,
   onSelectScenario,
   onDeactivate,
@@ -50,6 +49,7 @@ export function ScenarioSidebar({
   onFloodScenarioChange,
   floodFilterActive,
   onFloodFilterToggle,
+  onCivilTimeRangeChange,
 }: ScenarioSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -88,7 +88,6 @@ export function ScenarioSidebar({
       <div className="flex-1 min-h-0 overflow-y-auto p-4">
         <ScenarioPanel
           state={scenario}
-          impact={scenarioImpact}
           maxHours={maxHours}
           onSelectScenario={onSelectScenario}
           onDeactivate={onDeactivate}
@@ -105,6 +104,7 @@ export function ScenarioSidebar({
           onFloodScenarioChange={onFloodScenarioChange}
           floodFilterActive={floodFilterActive}
           onFloodFilterToggle={onFloodFilterToggle}
+          onCivilTimeRangeChange={onCivilTimeRangeChange}
         />
       </div>
     </aside>
