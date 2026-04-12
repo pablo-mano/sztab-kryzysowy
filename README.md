@@ -2,11 +2,13 @@
 
 Geospatial Decision Support Platform for crisis management in the Lubelskie Voivodeship, Poland.
 
-Built for the **civil42.pl hackathon** — special task of the Marshal of the Lubelskie Voivodeship.
+Built for the **[civil42.pl](https://civil42.pl) hackathon** — special task of the Marshal of the Lubelskie Voivodeship.
 
 **Live demo:** [sztab-kryzysowy.vercel.app](https://sztab-kryzysowy.vercel.app)
 
 ---
+
+![Dashboard z warstwami danych i zgłoszeniami cywilnymi](docs/screenshot-dashboard.png)
 
 ## Overview
 
@@ -17,29 +19,75 @@ Interactive map dashboard for visualizing geospatial data layers, running crisis
 - **Multi-layer map** with POI infrastructure (hospitals, schools, kindergartens, care homes), air quality stations (GIOS), civil reports, and administrative boundaries
 - **H3 hexagonal analytics** — density heatmaps, air quality interpolation, risk scoring with zoom-dependent resolution
 - **Crisis scenarios** — toxic cloud simulation (Pulawy chemical plant) with wind/time parameters, real-time population impact analysis per threat zone via Snowflake spatial intersection
+- **Flood risk mapping** — ISOK flood zone overlay with Q10/Q100/Q500 return periods and infrastructure impact assessment
 - **Spatial filtering** — click admin boundaries to filter data within a region
 - **Live data refresh** — civil reports update every 10 seconds
 - **Dual map modes** — toggle between point-based and H3 analytical views
 
-### Architecture
+### Screenshots
 
-```
-Data Sources (GIOS API, OSM, civil reports)
-        |
-   Snowflake (OLAP)
-   - Raw tables + serving views
-   - H3 spatial indexing
-   - ST_WITHIN / ST_DISTANCE queries
-        |
-   Next.js API Routes (cache layer)
-   - /api/layers/[id] — layer data
-   - /api/scenario — crisis impact analysis
-   - /api/aggregate — ad-hoc queries
-        |
-   React Frontend
-   - MapLibre GL (vector tiles, dark theme)
-   - Turf.js (cloud simulation geometry)
-   - SWR (data fetching + refresh)
+| Symulacja chmury toksycznej | Scenariusz powodziowy ISOK |
+|:---:|:---:|
+| ![Toxic cloud](docs/screenshot-toxic.png) | ![Flood scenario](docs/screenshot-flood.png) |
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph sources["External Data Sources"]
+        GIOS["GIOS API\nAir Quality"]
+        OSM["OpenStreetMap\nPOI Infrastructure"]
+        CIVIL["civil42.pl\nCivil Reports"]
+        ISOK["ISOK\nFlood Risk Maps"]
+        IMGW["IMGW\nWeather Data"]
+    end
+
+    subgraph snowflake["Snowflake (OLAP)"]
+        RAW["Raw Tables\nPOI, air stations, reports"]
+        H3["H3 Spatial Index\nHex grid analytics"]
+        VIEWS["Serving Views\nv_poi, v_h3_risk_score"]
+        SPATIAL["Spatial Queries\nST_WITHIN, ST_DISTANCE"]
+    end
+
+    subgraph backend["Next.js API Routes"]
+        LAYERS["/api/layers/[id]\nLayer data endpoint"]
+        SCENARIO["/api/scenario\nCrisis impact analysis"]
+        AGGREGATE["/api/aggregate\nAd-hoc spatial queries"]
+        CACHE["In-memory Cache\n60s TTL"]
+    end
+
+    subgraph frontend["React Frontend"]
+        MAP["MapLibre GL JS\nVector tiles, dark theme"]
+        TURF["Turf.js\nClient-side geo ops"]
+        GAUSS["Gaussian Dispersion\nToxic cloud model"]
+        SWR["SWR\nData fetching + refresh"]
+        UI["shadcn/ui\nDashboard components"]
+    end
+
+    DEPLOY["Vercel\nEdge deployment"]
+
+    sources --> snowflake
+    RAW --> H3
+    RAW --> VIEWS
+    H3 --> VIEWS
+    VIEWS --> SPATIAL
+
+    snowflake --> backend
+    SPATIAL --> LAYERS
+    SPATIAL --> SCENARIO
+    SPATIAL --> AGGREGATE
+    LAYERS --> CACHE
+    SCENARIO --> CACHE
+    AGGREGATE --> CACHE
+
+    backend --> frontend
+    CACHE --> SWR
+    SWR --> MAP
+    MAP --> TURF
+    MAP --> GAUSS
+    MAP --> UI
+
+    frontend --> DEPLOY
 ```
 
 ## Tech Stack
@@ -67,9 +115,7 @@ sztab-kryzysowy/
 ├── snowflake/
 │   ├── sql/           # DDL: tables, views, H3 grid
 │   └── seed/          # Data loading scripts (GIOS, OSM POIs)
-├── PLAN.md            # Architecture & MVP plan
-├── FRONTEND.md        # Frontend specification
-└── SNOWFLAKE.md       # Snowflake specification
+└── docs/              # Screenshots
 ```
 
 ## Getting Started
@@ -99,6 +145,15 @@ SNOWFLAKE_SCHEMA=PUBLIC
 SNOWFLAKE_WAREHOUSE=SZTAB_WH
 ```
 
+## Team
+
+Projekt stworzony na hackathonie **civil42.pl** przez zespol **Sztab Kryzysowy**:
+
+- **Pawel Manowiecki** — [pawel@datamano.com](mailto:pawel@datamano.com)
+- **Krzysztof Rzymkowski**
+- **Radek Sosnowski**
+- **Michal Karpinski**
+
 ## License
 
-MIT
+MIT License — see [LICENSE](LICENSE) for details.
