@@ -1,0 +1,10 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[21.55,51.62],[22.15,51.62],[22.15,51.20],[21.55,51.20],[21.55,51.62]]]},"properties":{"name":"puławski","level":"powiat","teryt":"0617","population":117000,"area_km2":1689}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[22.15,51.55],[23.05,51.55],[23.05,50.95],[22.15,50.95],[22.15,51.55]]]},"properties":{"name":"lubelski","level":"powiat","teryt":"0609","population":157000,"area_km2":1824}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[22.80,51.00],[23.58,51.00],[23.58,50.48],[22.80,50.48],[22.80,51.00]]]},"properties":{"name":"zamojski","level":"powiat","teryt":"0626","population":136000,"area_km2":3115}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[23.05,51.48],[23.90,51.48],[23.90,50.92],[23.05,50.92],[23.05,51.48]]]},"properties":{"name":"chełmski","level":"powiat","teryt":"0601","population":69000,"area_km2":1774}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[21.88,52.22],[22.82,52.22],[22.82,51.62],[21.88,51.62],[21.88,52.22]]]},"properties":{"name":"łukowski","level":"powiat","teryt":"0608","population":104000,"area_km2":1816}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[22.40,51.42],[22.92,51.42],[22.92,51.05],[22.40,51.05],[22.40,51.42]]]},"properties":{"name":"świdnicki","level":"powiat","teryt":"0621","population":164000,"area_km2":455}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[21.78,51.22],[22.35,51.22],[22.35,50.82],[21.78,50.82],[21.78,51.22]]]},"properties":{"name":"opolski","level":"powiat","teryt":"0614","population":64000,"area_km2":1217}},
+{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[23.55,50.92],[24.10,50.92],[24.10,50.52],[23.55,50.52],[23.55,50.92]]]},"properties":{"name":"hrubieszowski","level":"powiat","teryt":"0605","population":64000,"area_km2":1856}}
+]}

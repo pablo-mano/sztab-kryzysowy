@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { query } from "@/lib/snowflake";
+import { isDemoMode, demoScenarioStats } from "@/lib/demo";
 
 interface ScenarioRequest {
   cloudGeoJson?: string; // legacy: GeoJSON polygon of the cloud zone
@@ -25,6 +26,10 @@ export async function POST(request: NextRequest) {
 
     if (!geoJson) {
       return Response.json({ error: "Missing zoneGeoJson or cloudGeoJson" }, { status: 400 });
+    }
+
+    if (isDemoMode()) {
+      return Response.json(demoScenarioStats(zone, scenarioType));
     }
 
     // Query objects within the scenario zone

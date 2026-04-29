@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { query } from "@/lib/snowflake";
 import { cached } from "@/lib/cache";
+import { isDemoMode, DEMO_FLOOD_ZONE_GEOJSON } from "@/lib/demo";
 
 const SCENARIO_FILTERS: Record<string, string> = {
   q10: "return_period_years = 10",
@@ -10,6 +11,12 @@ const SCENARIO_FILTERS: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   const scenario = request.nextUrl.searchParams.get("scenario");
+
+  if (isDemoMode()) {
+    return Response.json(DEMO_FLOOD_ZONE_GEOJSON, {
+      headers: { "Content-Type": "application/geo+json" },
+    });
+  }
 
   if (!scenario || !SCENARIO_FILTERS[scenario]) {
     return Response.json(

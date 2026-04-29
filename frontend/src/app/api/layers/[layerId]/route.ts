@@ -4,6 +4,7 @@ import { join } from "path";
 import { getLayer } from "@/lib/layer-registry";
 import { query } from "@/lib/snowflake";
 import { cached } from "@/lib/cache";
+import { isDemoMode } from "@/lib/demo";
 import type { GeoFeatureCollection } from "@/types/feature";
 
 /**
@@ -146,6 +147,14 @@ export async function GET(
 
   if (!layer) {
     return Response.json({ error: `Layer "${layerId}" not found` }, { status: 404 });
+  }
+
+  if (isDemoMode()) {
+    const fallback = await loadFallback(layerId);
+    return Response.json(
+      fallback ?? { type: "FeatureCollection", features: [] },
+      { headers: { "Content-Type": "application/geo+json" } },
+    );
   }
 
   const { searchParams } = request.nextUrl;

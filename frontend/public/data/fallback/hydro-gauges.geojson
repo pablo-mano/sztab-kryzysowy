@@ -1,0 +1,5 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.9714,51.4175]},"properties":{"station_name":"Puławy","river_name":"Wisła","water_level_cm":482,"alarm_level_cm":500,"warning_level_cm":430,"status":"ostrzegawczy","measurement_time":"2026-04-12T10:00:00Z"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[21.8542,51.5583]},"properties":{"station_name":"Dęblin","river_name":"Wisła","water_level_cm":541,"alarm_level_cm":520,"warning_level_cm":450,"status":"alarmowy","measurement_time":"2026-04-12T10:00:00Z"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[22.1200,51.4050]},"properties":{"station_name":"Końskowola","river_name":"Wieprz","water_level_cm":315,"alarm_level_cm":380,"warning_level_cm":320,"status":"normalny","measurement_time":"2026-04-12T10:00:00Z"}}
+]}

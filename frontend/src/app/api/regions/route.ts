@@ -1,5 +1,6 @@
 import { query } from "@/lib/snowflake";
 import { cached } from "@/lib/cache";
+import { isDemoMode, DEMO_REGIONS } from "@/lib/demo";
 
 interface RegionRow {
   NAME: string;
@@ -12,6 +13,10 @@ interface RegionRow {
 }
 
 export async function GET() {
+  if (isDemoMode()) {
+    return Response.json({ regions: DEMO_REGIONS });
+  }
+
   try {
     const regions = await cached("regions:all:v2", 3600000, async () => {
       const rows = await query<RegionRow>(
