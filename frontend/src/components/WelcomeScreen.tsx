@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor, Images, X, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Shield, Map, BookOpen, ArrowRight, Loader2, Play, Monitor, Images, X, ChevronLeft, ChevronRight as ChevronRightIcon, Github } from "lucide-react";
 
 const SCREENSHOTS = [
   { src: "/screenshots/01-main-map-layers.png", label: "Mapa z warstwami danych" },
@@ -185,6 +185,15 @@ export function WelcomeScreen({ onContinue, onGuide }: WelcomeScreenProps) {
                   Przejdź bezpośrednio do aplikacji
                   <ArrowRight className="w-4 h-4" />
                 </button>
+                <a
+                  href="https://github.com/pablo-mano/sztab-kryzysowy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full rounded-lg border border-border bg-card hover:bg-accent/50 text-muted-foreground font-medium px-6 py-3 transition-colors"
+                >
+                  <Github className="w-4 h-4" />
+                  GitHub
+                </a>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 animate-pulse">
