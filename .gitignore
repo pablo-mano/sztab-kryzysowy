@@ -1,1 +1,15 @@
 .vercel
+
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.p8
+*.key
+keys/
+secrets/
+.snowflake/
+credentials
+credentials.json
+id_rsa
+id_ed25519
